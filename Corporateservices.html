@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Services | Event Plus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #953553;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Navigation Bar */
+        header {
+            background-color: rgba(0, 0, 0, 0.2);
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            color: #A95C68;
+            margin-right: 10px;
+            font-size: 32px;
+        }
+        
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 18px;
+            padding: 8px 15px;
+            transition: all 0.3s;
+            border-radius: 5px;
+        }
+        
+        .nav-links a:hover {
+            background-color: rgba(169, 92, 104, 0.3);
+        }
+        
+        .nav-links a.active {
+            background-color: #A95C68;
+            color: white;
+            box-shadow: 0 4px 10px rgba(169, 92, 104, 0.3);
+        }
+        
+        /* Page Title */
+        .page-title {
+            text-align: center;
+            margin-bottom: 60px;
+            color: #fff;
+        }
+        
+        .page-title h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .page-title p {
+            font-size: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+        
+        /* Wedding Services Grid - 2x2 Layout */
+        .wedding-services {
+            padding-bottom: 80px;
+        }
+        
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .service-card {
+            background-color: whitesmoke;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.4s;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .service-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+        }
+        
+        .service-image {
+            height: 250px;
+            overflow: hidden;
+        }
+        
+        .service-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.7s;
+        }
+        
+        .service-card:hover .service-image img {
+            transform: scale(1.1);
+        }
+        
+        .service-content {
+            padding: 30px;
+        }
+        
+        .service-name {
+            font-size: 28px;
+            color: #953553;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #953553 0%, #A95C68 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 22px;
+            color: white;
+            box-shadow: 0 5px 15px rgba(149, 53, 83, 0.3);
+        }
+        
+        .service-description {
+            font-size: 17px;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            color: #666;
+        }
+        
+        .service-features {
+            list-style: none;
+        }
+        
+        .service-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+            padding-left: 30px;
+            color: #555;
+        }
+        
+        .service-features li:before {
+            content: '✓';
+            position: absolute;
+            left: 8px;
+            color: #A95C68;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .service-features li:last-child {
+            border-bottom: none;
+        }
+        
+        /* Back Link */
+        .back-link {
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #fff;
+            color: #953553;
+            text-decoration: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+        }
+        
+        .back-btn:hover {
+            background-color: #953553;
+            color: white;
+            border-color: #fff;
+            transform: scale(1.05);
+        }
+        
+        .back-btn i {
+            margin-right: 10px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .page-title h1 {
+                font-size: 36px;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+            
+            .nav-links a {
+                font-size: 16px;
+                padding: 6px 12px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .page-title h1 {
+                font-size: 32px;
+            }
+            
+            .page-title p {
+                font-size: 18px;
+            }
+            
+            .service-name {
+                font-size: 24px;
+            }
+            
+            .service-content {
+                padding: 20px;
+            }
+            
+            .service-image {
+                height: 200px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .service-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+                margin-right: 10px;
+            }
+            
+            .service-name {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+      <div class="logo">Evenzo</div>
+      
+      <ul class="links">
+        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
+        <li class="dropdown">
+          <a href="javascript:void(0)" class="dropbtn">Services</a>
+          <ul class="dropdown-content">
+            <li><a href="weddingservices.html">WEDDING EVENTS</a></li>
+            <li><a href="Specialservices.html">PERSONAL EVENTS</a></li>
+            <li><a href="Corporateservices.html">CORPORATE EVENT</a></li>
+            <li><a href="publicservices.html">PUBLIC EVENTS</a></li>
+          </ul>
+        </li>
+        <li>About</li>
+       
+      </ul>
+    </div>
+
+    <!-- Page Title -->
+    <div class="container">
+        <div class="page-title">
+            <h1>Corporate Events</h1>
+            <p>We deliver professional corporate event solutions with a strong focus on quality and branding. From conferences and product launches to meetings and award ceremonies, we manage every detail efficiently. Our goal is to create impactful events that leave a lasting impression.</p>
+        </div>
+        
+        <!-- Wedding Services Grid (2x2 Layout) -->
+        <div class="wedding-services">
+            <div class="services-grid">
+                <!-- Weddings -->
+                <div class="service-card">
+                    <div class="service-image">
+                        <img src="https://www.pingpongmoments.in/blog/wp-content/uploads/2020/05/conference-management.png" alt="Wedding Ceremony">
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-name">
+                            <span class="service-icon">
+                                <i class="fas fa-ring"></i>
+                            </span>
+                            CONFERENCES
+                        </h3>
+                        <p class="service-description">Complete planning and execution of wedding ceremonies with customized rituals and traditions.</p>
+                        <ul class="service-features">
+                            <li>Stage, seating & branding setup</li>
+                            <li>Audio-visual & presentation systems</li>
+                            <li>Registration & attendee management</li>
+                            <li>Event scheduling & coordination</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Engagements -->
+                <div class="service-card">
+                    <div class="service-image">
+                        <img src="https://i.pinimg.com/originals/ce/ef/d4/ceefd4edaf32cd654759df91cddebad0.png" alt="Engagement">
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-name">
+                            <span class="service-icon">
+                                <i class="fas fa-heart"></i>
+                            </span>
+                            PRODUCT LAUNCHES
+                        </h3>
+                        <p class="service-description">Memorable engagement ceremonies with beautiful décor, photography, and entertainment.</p>
+                        <ul class="service-features">
+                            <li>Brand-focused stage & décor design</li>
+                            <li>Lighting, sound & LED setupt</li>
+                            <li>Media & guest coordination</li>
+                            <li>Event flow & presentation management</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Receptions -->
+                <div class="service-card">
+                    <div class="service-image">
+                        <img src="https://png.pngtree.com/thumb_back/fw800/background/20230516/pngtree-several-business-men-and-women-sitting-around-a-conference-table-image_2565683.jpg" alt="Reception">
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-name">
+                            <span class="service-icon">
+                                <i class="fas fa-champagne-glasses"></i>
+                            </span>
+                            MEETING
+                        </h3>
+                        <p class="service-description">Grand reception celebrations with luxurious décor, gourmet dining, and entertainment.</p>
+                        <ul class="service-features">
+                            <li>Boardroom-style seating arrangements</li>
+                            <li>Audio-visual equipment support</li>
+                            <li>Time & agenda coordination</li>
+                            <li>Refreshment & guest handling</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Pre-Wedding Functions -->
+                <div class="service-card">
+                    <div class="service-image">
+                        <img src="https://www.inventiveevents.com/wp-content/uploads/2019/02/awards-1.jpg" alt="Pre-Wedding Functions">
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-name">
+                            <span class="service-icon">
+                                <i class="fas fa-music"></i>
+                            </span>
+                            AWARDS CEREMONY
+                        </h3>
+                        <p class="service-description">Celebrate every milestone with beautifully planned pre-wedding events.</p>
+                        <ul class="service-features">
+                            <li>Trophy stage & backdrop design</li>
+                            <li>Professional lighting & sound</li>
+                            <li>Guest & nominee coordination</li>
+                            <li>Program scheduling & execution</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+
+    <script>
+        // Simple hover animation enhancement
+        document.querySelectorAll('.service-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+        
+        // Set active navigation link
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            if (link.textContent === 'Services') {
+                link.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

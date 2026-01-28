@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sanchez&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="main">
+    <div class="navbar">
+      <div class="logo">Evenzo</div>
+      
+      <ul class="links">
+        <li>Home</li>
+       <li class="dropdown">
+        <a href="javascript:void(0)" class="dropbtn">Services</a>
+        <ul class="dropdown-content">
+          <li><a href="weddingservices.html">WEDDING EVENTS</a></li>
+          <li><a href="Specialservices.html">PERSONAL EVENTS</a></li>
+          <li><a href="Corporateservices.html">CORPORATE EVENT</a></li>
+          <li><a href="publicservices.html">PUBLIC EVENTS</a></li>
+        </ul>
+      </li>
+        <li>About</li>
+        <li>
+         <a href="javascript:void(0)" class="login-btn" id="openLogin">Login</a>
+        </li>
+      </ul>
+    </div>
+    <div id="loginModal" class="modal-overlay">
+  <div class="login-card">
+    <span class="close-modal">&times;</span>
+    <h2>LOGIN</h2>
+    <form>
+      <div class="input-group">
+        <input type="email" placeholder="Email" required>
+        <i class="fas fa-envelope"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" placeholder="Password" required>
+        <i class="fas fa-eye-slash"></i>
+        
+      </div>
+      <div class="remember-me">
+        <a href="#" class="forgot-link">Forgot Password?</a>
+      </div>
+      <button type="submit" class="modal-login-btn">Login</button>
+      <div class="register-text">
+        Don't have an Account? <a href="#">Register</a>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="forgotModal" class="modal-overlay">
+  <div class="login-card">
+    <span class="close-modal" id="closeForgot">&times;</span>
+    <h2 id="forgotTitle">FORGOT PASSWORD</h2>
+    
+    <form id="forgotForm">
+      <div id="emailStep">
+        <div class="input-group">
+          <input type="email" id="forgotEmail" placeholder="Enter your Email" required>
+          <i class="fas fa-envelope"></i>
+        </div>
+        <button type="submit" class="modal-login-btn">Submit</button>
+      </div>
+
+      <div id="otpStep" style="display: none;">
+        <p style="text-align: center; color: #fff; font-size: 14px; margin-bottom: 15px;">
+           OTP has been sent to your email
+        </p>
+        <div class="input-group">
+          <input type="text" id="otpCode" placeholder="Enter OTP" required>
+          <i class="fas fa-key"></i>
+        </div>
+        <button type="button" class="modal-login-btn" id="verifyOtpBtn">Verify & Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+<div id="registerModal" class="modal-overlay">
+  <div class="login-card">
+    <span class="close-modal" id="closeRegister">&times;</span>
+    <h2>REGISTER</h2>
+    <form id="registerForm">
+      <div class="input-group">
+        <input type="text" placeholder="Full Name" required>
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="input-group">
+        <input type="email" placeholder="Email" required>
+        <i class="fas fa-envelope"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" id="regPass" placeholder="Create Password" required>
+        <i class="fas fa-lock"></i>
+      </div>
+      <div class="input-group">
+        <input type="password" id="confirmPass" placeholder="Confirm Password" required>
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <button type="submit" class="modal-login-btn">Create Account</button>
+      <div class="register-text">
+        Already have an account? <a href="#" id="backToLogin">Login</a>
+      </div>
+    </form>
+  </div>
+</div>
+    <div class="hero">
+      <div class="left">
+        
+        <span class="left1" id="text1">WEDDING EVENTS</span>
+        <span class="left2" id="text2">Dont wait</span>
+        <span class="left3" id="text3">ani kid manta</span>
+        <span class="left4" id="text4">explore now</span>
+      </div>
+
+      <div class="food" id="food"></div>
+    </div>
+
+    <div class="items">
+      <div id="food1"></div>
+      <div id="food2"></div>
+      <div id="food3"></div>
+      <div id="food4"></div>
+    </div>
+  </div>
+</div>
+</div>
+    <!-- About Us Section -->
+    <section class="about-section" id="about">
+      <h2 class="section-title">About Us</h2>
+      <div class="about-content">
+        <div class="about-text">
+          <h3>Creating Unforgettable Experiences</h3>
+          <p>At Evenzo, we specialize in transforming ordinary moments into extraordinary memories. With years of experience in event planning, our team of creative professionals is dedicated to making your vision a reality.</p>
+          <div class="stats">
+            
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Our Speciality Section -->
+    <section class="speciality-section">
+      <h2 class="section-title">Our Speciality</h2>
+      <div class="speciality-grid">
+        <div class="speciality-card">
+          <div class="speciality-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h3>Customized Planning</h3>
+          <p>Every event is unique. We create personalized plans that reflect your style.</p>
+        </div>
+        <div class="speciality-card">
+          <div class="speciality-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <h3>Stress-Free Experience</h3>
+          <p>We handle all details so you can enjoy your special day without worries.</p>
+        </div>
+        <div class="speciality-card">
+          <div class="speciality-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <h3>Expert Team</h3>
+          <p>Our experienced team brings creativity and professionalism to every event.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-section">
+          <h3 class="footer-logo">Evenzo</h3>
+          <p>Creating memorable experiences one event at a time.</p>
+          <div class="social-icons">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#">Services</a></li>
+          </ul>
+        </div>
+        
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2024 Evenzo Event Planning. All rights reserved.</p>
+      </div>
+    </footer>
+  </div>
+  
+
+
+  
+<script>
+  const food = document.getElementById("food");
+
+  const food1 = document.getElementById("food1");
+  const food2 = document.getElementById("food2");
+  const food3 = document.getElementById("food3");
+  const food4 = document.getElementById("food4");
+
+  const t1 = document.getElementById("text1");
+  const t2 = document.getElementById("text2");
+  const t3 = document.getElementById("text3");
+  const t4 = document.getElementById("text4");
+
+  const data = [
+    {
+      img: "/images/wedd.jpg",
+      text: ["WEDDING EVENTS", "Tailored Weddings", "Creating Your Dream Wedding", "Plan Your Wedding"]
+    },
+    {
+      img: "/images/download.jpg",
+      text: ["PERSONAL EVENTS", "Fun & Memorable", "Celebrate Every Special Moment", "Book Your Event"]
+    },
+    {
+      img: "/images/ce.jpg",
+      text: ["CORPORATE EVENT", "Professional & Powerful", "Events That Inspire Success", "Schedule Now"]
+    },
+    {
+      img: "/images/fest.jpg",
+      text: ["PUBLIC EVENTS ", "Grand & Energetic", "Bringing Events to Life", "Explore Now"]
+    }
+  ];
+
+  function update(index) {
+    food.style.backgroundImage = `url('${data[index].img}')`;
+    t1.innerText = data[index].text[0];
+    t2.innerText = data[index].text[1];
+    t3.innerText = data[index].text[2];
+    t4.innerText = data[index].text[3];
+  }
+
+  food1.addEventListener("mouseenter", () => update(0));
+  food2.addEventListener("mouseenter", () => update(1));
+  food3.addEventListener("mouseenter", () => update(2));
+  food4.addEventListener("mouseenter", () => update(3));
+
+  // Mobile support (tap)
+  food1.addEventListener("click", () => update(0));
+  food2.addEventListener("click", () => update(1));
+  food3.addEventListener("click", () => update(2));
+  food4.addEventListener("click", () => update(3));
+
+
+  const loginBtn = document.querySelector('.login-btn');
+const modal = document.getElementById('loginModal');
+const closeModal = document.querySelector('.close-modal');
+
+// Open Modal when clicking Login
+loginBtn.addEventListener('click', (e) => {
+  e.preventDefault(); // Prevents page from navigating to login.html
+  modal.style.display = 'flex';
+});
+
+// Close Modal when clicking the X
+closeModal.addEventListener('click', () => {
+  modal.style.display = 'none';
+});
+
+// Close Modal when clicking outside the card
+window.addEventListener('click', (e) => {
+  if (e.target === modal) {
+    modal.style.display = 'none';
+  }
+});
+
+const forgotLink = document.querySelector('.forgot-link');
+const forgotModal = document.getElementById('forgotModal');
+const closeForgot = document.getElementById('closeForgot');
+
+// Open Forgot Modal when clicking 'Forgot Password?'
+forgotLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  modal.style.display = 'none';      // Hide the Login Modal
+  forgotModal.style.display = 'flex'; // Show the Forgot Modal
+});
+
+// Close Forgot Modal when clicking the X
+closeForgot.addEventListener('click', () => {
+  forgotModal.style.display = 'none';
+});
+
+// Close Forgot Modal when clicking outside the box
+window.addEventListener('click', (e) => {
+  if (e.target === forgotModal) {
+    forgotModal.style.display = 'none';
+  }
+});
+
+const registerModal = document.getElementById('registerModal');
+const openRegister = document.querySelector('.register-text a'); // The "Register" link in Login card
+const closeRegister = document.getElementById('closeRegister');
+const backToLogin = document.getElementById('backToLogin');
+
+// 1. Open Register from Login
+openRegister.addEventListener('click', (e) => {
+  e.preventDefault();
+  modal.style.display = 'none'; // Hide Login
+  registerModal.style.display = 'flex'; // Show Register
+});
+
+// 2. Back to Login from Register
+backToLogin.addEventListener('click', (e) => {
+  e.preventDefault();
+  registerModal.style.display = 'none';
+  modal.style.display = 'flex';
+});
+
+// 3. Close Register Modal
+closeRegister.addEventListener('click', () => {
+  registerModal.style.display = 'none';
+});
+
+// 4. Close if clicking outside the card
+window.addEventListener('click', (e) => {
+  if (e.target === registerModal) {
+    registerModal.style.display = 'none';
+  }
+});
+const registerForm = document.getElementById('registerForm');
+
+registerForm.addEventListener('submit', (e) => {
+  const password = document.getElementById('regPass').value;
+  const confirm = document.getElementById('confirmPass').value;
+
+  if (password !== confirm) {
+    e.preventDefault(); // Stop the form from submitting
+    alert("Passwords do not match! Please try again.");
+  } else {
+    // If they match, you can proceed with your registration logic
+    alert("Registration Successful!");
+  }
+});
+  // default load
+  update(1);
+</script>
+
+</body>
+</html>
