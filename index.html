@@ -99,6 +99,16 @@
     <span class="close-modal" id="closeRegister">&times;</span>
     <h2>REGISTER</h2>
     <form id="registerForm">
+      <div class="role-selection">
+        <label class="radio-label">
+          <input type="radio" name="regUserRole" value="user" checked>
+          <span>User</span>
+        </label>
+        <label class="radio-label">
+          <input type="radio" name="regUserRole" value="eventmanager">
+          <span>Event Manager</span>
+        </label>
+      </div>
       <div class="input-group">
         <input type="text" placeholder="Full Name" required>
         <i class="fas fa-user"></i>
