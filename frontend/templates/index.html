@@ -173,7 +173,7 @@
         <span class="left1" id="text1">WEDDING EVENTS</span>
         <span class="left2" id="text2">Dont wait</span>
         <span class="left3" id="text3">ani kid manta</span>
-        <span class="left4" id="text4">explore now</span>
+        <a class="left4" id="text4" href="/frontend/templates/weddingservices.html">explore now</a>
       </div>
 
       <div class="food" id="food"></div>
@@ -277,19 +277,23 @@
   const data = [
     {
       img: "/frontend/static/images/wedd.jpg",
-      text: ["WEDDING EVENTS", "Tailored Weddings", "Creating Your Dream Wedding", "Plan Your Wedding"]
+      text: ["WEDDING EVENTS", "Tailored Weddings", "Creating Your Dream Wedding", "Plan Your Wedding"],
+      link: "/frontend/templates/weddingservices.html"
     },
     {
       img: "/frontend/static/images/download.jpg",
-      text: ["PERSONAL EVENTS", "Fun & Memorable", "Celebrate Every Special Moment", "Book Your Event"]
+      text: ["PERSONAL EVENTS", "Fun & Memorable", "Celebrate Every Special Moment", "Book Your Event"],
+      link: "/frontend/templates/Specialservices.html"
     },
     {
       img: "/frontend/static/images/ce.jpg",
-      text: ["CORPORATE EVENT", "Professional & Powerful", "Events That Inspire Success", "Schedule Now"]
+      text: ["CORPORATE EVENT", "Professional & Powerful", "Events That Inspire Success", "Schedule Now"],
+      link: "/frontend/templates/Corporateservices.html"
     },
     {
       img: "/frontend/static/images/fest.jpg",
-      text: ["PUBLIC EVENTS ", "Grand & Energetic", "Bringing Events to Life", "Explore Now"]
+      text: ["PUBLIC EVENTS ", "Grand & Energetic", "Bringing Events to Life", "Explore Now"],
+      link: "/frontend/templates/publicservices.html"
     }
   ];
 
@@ -299,6 +303,7 @@
     t2.innerText = data[index].text[1];
     t3.innerText = data[index].text[2];
     t4.innerText = data[index].text[3];
+    t4.href = data[index].link;
   }
 
   food1.addEventListener("mouseenter", () => update(0));

@@ -63,8 +63,9 @@
         .nav-links a {
             color: #fff;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 18px;
+            font-weight: 700;
+            font-size: 23px;
+            font-family: 'inter', serif;
             padding: 8px 15px;
             transition: all 0.3s;
             border-radius: 5px;
@@ -249,6 +250,8 @@
             
             .nav-links a {
                 font-size: 16px;
+                font-weight: 700;
+                font-family: 'inter', serif;
                 padding: 6px 12px;
             }
         }
@@ -292,6 +295,43 @@
                 font-size: 22px;
             }
         }
+        
+        /* Explore Button */
+        .explore-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            color: #953553;
+            text-decoration: none;
+            padding: 14px 40px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 12px rgba(149, 53, 83, 0.3);
+            border: 2px solid #953553;
+            cursor: pointer;
+        }
+        
+        .explore-btn:hover {
+            box-shadow: 0 5px 25px rgba(149, 53, 83, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        .explore-btn i {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+        
+        .explore-btn:hover i {
+            transform: translateX(3px);
+        }
+        
+        .explore-btn-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
     </style>
 </head>
 <body>
@@ -301,119 +341,132 @@
       <div class="logo">Evenzo</div>
       
       <ul class="links">
-        <li><a href="index.html" style="color: white; text-decoration: none;">Home</a></li>
+        <li><a href="index.html" style="color: white; text-decoration: none; font-family: 'Times New Roman';">Home</a></li>
         <li class="dropdown">
-          <a href="javascript:void(0)" class="dropbtn">Services</a>
+          <a href="javascript:void(0)" class="dropbtn" style="font-family: 'Times New Roman';">Services</a>
           <ul class="dropdown-content">
-            <li><a href="weddingservices.html">WEDDING EVENTS</a></li>
-            <li><a href="Specialservices.html">PERSONAL EVENTS</a></li>
-            <li><a href="Corporateservices.html">CORPORATE EVENT</a></li>
-            <li><a href="publicservices.html">PUBLIC EVENTS</a></li>
+            <li><a href="weddingservices.html" style="font-family: 'Times New Roman';">WEDDING EVENTS</a></li>
+            <li><a href="Specialservices.html" style="font-family: 'Times New Roman';">PERSONAL EVENTS</a></li>
+            <li><a href="Corporateservices.html" style="font-family: 'Times New Roman';">CORPORATE EVENT</a></li>
+            <li><a href="publicservices.html" style="font-family: 'Times New Roman';">PUBLIC EVENTS</a></li>
           </ul>
         </li>
-        <li>About</li>
+        <li style="font-family: 'Times New Roman'">About</li>
        
       </ul>
     </div>
     <!-- Page Title -->
     <div class="container">
         <div class="page-title">
-            <h1>Corporate Events</h1>
-            <p>We deliver professional corporate event solutions with a strong focus on quality and branding. From conferences and product launches to meetings and award ceremonies, we manage every detail efficiently. Our goal is to create impactful events that leave a lasting impression.</p>
+            <h1>Personal Events</h1>
+            <p>Celebrate your special moments with us! From birthdays and anniversaries to engagements and family reunions, we create memorable personal events tailored to your vision. Our team handles all the details so you can focus on enjoying your celebration with loved ones.</p>
+        </div>
+        
+        <!-- Explore Event Handlers Button -->
+        <div class="explore-btn-container">
+            <button class="explore-btn">Explore the Event Handlers <i class="fas fa-arrow-right"></i></button>
         </div>
         
         <!-- Wedding Services Grid (2x2 Layout) -->
         <div class="wedding-services">
-            <div class="services-grid">
-                <!-- Weddings -->
-                <div class="service-card">
-                    <div class="service-image">
-                        <img src="https://www.pingpongmoments.in/blog/wp-content/uploads/2020/05/conference-management.png" alt="Wedding Ceremony">
-                    </div>
-                    <div class="service-content">
-                        <h3 class="service-name">
-                            <span class="service-icon">
-                                <i class="fas fa-ring"></i>
-                            </span>
-                            CONFERENCES
-                        </h3>
-                        <p class="service-description">Complete planning and execution of wedding ceremonies with customized rituals and traditions.</p>
-                        <ul class="service-features">
-                            <li>Stage, seating & branding setup</li>
-                            <li>Audio-visual & presentation systems</li>
-                            <li>Registration & attendee management</li>
-                            <li>Event scheduling & coordination</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Engagements -->
-                <div class="service-card">
-                    <div class="service-image">
-                        <img src="https://i.pinimg.com/originals/ce/ef/d4/ceefd4edaf32cd654759df91cddebad0.png" alt="Engagement">
-                    </div>
-                    <div class="service-content">
-                        <h3 class="service-name">
-                            <span class="service-icon">
-                                <i class="fas fa-heart"></i>
-                            </span>
-                            PRODUCT LAUNCHES
-                        </h3>
-                        <p class="service-description">Memorable engagement ceremonies with beautiful décor, photography, and entertainment.</p>
-                        <ul class="service-features">
-                            <li>Brand-focused stage & décor design</li>
-                            <li>Lighting, sound & LED setupt</li>
-                            <li>Media & guest coordination</li>
-                            <li>Event flow & presentation management</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Receptions -->
-                <div class="service-card">
-                    <div class="service-image">
-                        <img src="https://png.pngtree.com/thumb_back/fw800/background/20230516/pngtree-several-business-men-and-women-sitting-around-a-conference-table-image_2565683.jpg" alt="Reception">
-                    </div>
-                    <div class="service-content">
-                        <h3 class="service-name">
-                            <span class="service-icon">
-                                <i class="fas fa-champagne-glasses"></i>
-                            </span>
-                            MEETING
-                        </h3>
-                        <p class="service-description">Grand reception celebrations with luxurious décor, gourmet dining, and entertainment.</p>
-                        <ul class="service-features">
-                            <li>Boardroom-style seating arrangements</li>
-                            <li>Audio-visual equipment support</li>
-                            <li>Time & agenda coordination</li>
-                            <li>Refreshment & guest handling</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <!-- Pre-Wedding Functions -->
-                <div class="service-card">
-                    <div class="service-image">
-                        <img src="https://www.inventiveevents.com/wp-content/uploads/2019/02/awards-1.jpg" alt="Pre-Wedding Functions">
-                    </div>
-                    <div class="service-content">
-                        <h3 class="service-name">
-                            <span class="service-icon">
-                                <i class="fas fa-music"></i>
-                            </span>
-                            AWARDS CEREMONY
-                        </h3>
-                        <p class="service-description">Celebrate every milestone with beautifully planned pre-wedding events.</p>
-                        <ul class="service-features">
-                            <li>Trophy stage & backdrop design</li>
-                            <li>Professional lighting & sound</li>
-                            <li>Guest & nominee coordination</li>
-                            <li>Program scheduling & execution</li>
-                        </ul>
-                    </div>
-                </div>
+    <div class="services-grid">
+        <!-- Birthday -->
+        <div class="service-card">
+            <div class="service-image">
+                <img src="https://www.pingpongmoments.in/blog/wp-content/uploads/2020/05/conference-management.png" alt="Birthday">
             </div>
-            
+            <div class="service-content">
+                <h3 class="service-name">
+                    <span class="service-icon">
+                        <i class="fas fa-ring"></i>
+                    </span>
+                    BIRTHDAY CELEBRATIONS
+                </h3>
+                <p class="service-description">
+                    Complete planning and execution of birthday parties with fun themes, decorations, and memorable experiences.
+                </p>
+                <ul class="service-features">
+                    <li>Theme-based decoration & balloon setup</li>
+                    <li>Cake arrangement & customized designs</li>
+                    <li>Games, activities & entertainment</li>
+                    <li>Photography & memorable moments</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Anniversary -->
+        <div class="service-card">
+            <div class="service-image">
+                <img src="https://i.pinimg.com/originals/ce/ef/d4/ceefd4edaf32cd654759df91cddebad0.png" alt="Anniversary">
+            </div>
+            <div class="service-content">
+                <h3 class="service-name">
+                    <span class="service-icon">
+                        <i class="fas fa-heart"></i>
+                    </span>
+                    ANNIVERSARY CELEBRATIONS
+                </h3>
+                <p class="service-description">
+                    Memorable anniversary celebrations with elegant décor, personalized moments, and joyful experiences.
+                </p>
+                <ul class="service-features">
+                    <li>Romantic theme & venue decoration</li>
+                    <li>Custom cake & dinner arrangements</li>
+                    <li>Music, slideshow & special moments</li>
+                    <li>Photography & video memories</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Baby Shower -->
+        <div class="service-card">
+            <div class="service-image">
+                <img src="https://png.pngtree.com/thumb_back/fw800/background/20230516/pngtree-several-business-men-and-women-sitting-around-a-conference-table-image_2565683.jpg" alt="Baby Shower">
+            </div>
+            <div class="service-content">
+                <h3 class="service-name">
+                    <span class="service-icon">
+                        <i class="fas fa-champagne-glasses"></i>
+                    </span>
+                    BABY SHOWERS
+                </h3>
+                <p class="service-description">
+                    Beautifully planned baby shower celebrations with cute themes, fun games, and heartwarming moments.
+                </p>
+                <ul class="service-features">
+                    <li>Theme-based decoration & balloon setup</li>
+                    <li>Games, activities & gift management</li>
+                    <li>Customized cake & dessert table</li>
+                    <li>Photography & memory keepsakes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- House Party -->
+        <div class="service-card">
+            <div class="service-image">
+                <img src="https://www.inventiveevents.com/wp-content/uploads/2019/02/awards-1.jpg" alt="House Party">
+            </div>
+            <div class="service-content">
+                <h3 class="service-name">
+                    <span class="service-icon">
+                        <i class="fas fa-music"></i>
+                    </span>
+                    HOUSE PARTIES
+                </h3>
+                <p class="service-description">
+                    Fun and hassle-free house parties with personalized themes, food, and entertainment at your home.
+                </p>
+                <ul class="service-features">
+                    <li>Theme décor & space arrangement</li>
+                    <li>Music, DJ & party games</li>
+                    <li>Snacks, catering & drinks setup</li>
+                    <li>Cleanup support after the event</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
             
         </div>
     </div>
