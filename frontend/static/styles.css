@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    background: url(/images/slide\ 5.png);
+    background: url(/frontend/static/images/slide\ 5.png);
     color: white;
 }
 span {
@@ -98,7 +98,7 @@ margin-top: -67px;
 
 }
 #food{
-  background:url(/images/wedd.jpg);
+  background:url(/frontend/static/images/wedd.jpg);
   width:500px;
   height:500px;
   background-size: cover;
@@ -123,25 +123,25 @@ margin-top: -67px;
   background-repeat: no-repeat;
 }
 #food1{
-  background:url(/images/wedd.jpg);
+  background:url(/frontend/static/images/wedd.jpg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food2{
-  background:url(/images/download.jpg);
+  background:url(/frontend/static/images/download.jpg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food3{
-  background:url(/images/ce.jpg);
+  background:url(/frontend/static/images/ce.jpg);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food4{
-  background:url(/images/fest.jpg);
+  background:url(/frontend/static/images/fest.jpg);
   background-size: cover;
 }
 
