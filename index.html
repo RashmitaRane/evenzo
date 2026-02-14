@@ -109,22 +109,57 @@
           <span>Event Manager</span>
         </label>
       </div>
-      <div class="input-group">
-        <input type="text" placeholder="Full Name" required>
-        <i class="fas fa-user"></i>
+
+      <!-- Form Layout (Dynamic: Single Column for Users, Two Columns for Event Managers) -->
+      <div class="form-columns" id="formColumnsContainer">
+        <!-- LEFT COLUMN -->
+        <div class="form-column">
+          <div class="input-group">
+            <input type="text" id="regFullName" placeholder="Full Name" required>
+            <i class="fas fa-user"></i>
+          </div>
+          <!-- Business Name (Event Manager Only) -->
+          <div class="input-group" id="businessNameGroup" style="display: none;">
+            <input type="text" id="regBusinessName" placeholder="Business Name" required>
+            <i class="fas fa-briefcase"></i>
+          </div>
+          <div class="input-group password-group">
+            <input type="password" id="regPass" placeholder="Create Password" class="password-input" required>
+            <i class="fas fa-eye-slash toggle-password"></i>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div class="form-column">
+          <div class="input-group">
+            <input type="email" id="regEmail" placeholder="Email" required>
+            <i class="fas fa-envelope"></i>
+          </div>
+          <!-- Phone (Event Manager Only) -->
+          <div class="input-group" id="phoneGroup" style="display: none;">
+            <input type="tel" id="regPhone" placeholder="Phone Number" required>
+            <i class="fas fa-phone"></i>
+          </div>
+          <div class="input-group password-group">
+            <input type="password" id="confirmPass" placeholder="Confirm Password" class="password-input" required>
+            <i class="fas fa-eye-slash toggle-password"></i>
+          </div>
+        </div>
       </div>
-      <div class="input-group">
-        <input type="email" placeholder="Email" required>
-        <i class="fas fa-envelope"></i>
+
+      <!-- License Upload (Full Width - Event Manager Only) -->
+      <div id="licenseUploadGroup" style="display: none; position: relative; margin-bottom: 20px; margin-top: 20px;">
+        <label for="regLicense" style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); display: block; transition: all 0.3s ease;">
+          <div style="font-size: 22px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">
+            <i class="fas fa-file-upload"></i>
+          </div>
+          <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">Upload Business License</div>
+          <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 5px;">(PDF, JPG, PNG - Max 5MB)</div>
+          <div id="regFileName" style="color: #4caf50; margin-top: 8px; font-size: 12px;"></div>
+          <input type="file" id="regLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" required>
+        </label>
       </div>
-      <div class="input-group password-group">
-        <input type="password" id="regPass" placeholder="Create Password" class="password-input" required>
-        <i class="fas fa-eye-slash toggle-password"></i>
-      </div>
-      <div class="input-group password-group">
-        <input type="password" id="confirmPass" placeholder="Confirm Password" class="password-input" required>
-        <i class="fas fa-eye-slash toggle-password"></i>
-      </div>
+
       <button type="submit" class="modal-login-btn">Create Account</button>
       <div class="register-text">
         Already have an account? <a href="#" id="backToLogin">Login</a>
@@ -354,18 +389,87 @@ window.addEventListener('click', (e) => {
   }
 });
 const registerForm = document.getElementById('registerForm');
+const roleRadios = document.querySelectorAll('input[name="regUserRole"]');
+const businessNameGroup = document.getElementById('businessNameGroup');
+const phoneGroup = document.getElementById('phoneGroup');
+const licenseUploadGroup = document.getElementById('licenseUploadGroup');
+const regLicenseInput = document.getElementById('regLicense');
+const regFileName = document.getElementById('regFileName');
+
+// Handle role selection - show/hide fields and toggle layout
+const formColumnsContainer = document.getElementById('formColumnsContainer');
+
+roleRadios.forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    if (e.target.value === 'eventmanager') {
+      businessNameGroup.style.display = 'block';
+      phoneGroup.style.display = 'block';
+      licenseUploadGroup.style.display = 'block';
+      // Apply two-column layout for event manager
+      formColumnsContainer.classList.add('event-manager-layout');
+    } else {
+      businessNameGroup.style.display = 'none';
+      phoneGroup.style.display = 'none';
+      licenseUploadGroup.style.display = 'none';
+      // Remove two-column layout for regular users
+      formColumnsContainer.classList.remove('event-manager-layout');
+    }
+  });
+});
+
+// File Upload Handler
+regLicenseInput.addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      alert('File size must be less than 5MB');
+      this.value = '';
+      regFileName.textContent = '';
+    } else {
+      regFileName.textContent = `✓ ${file.name}`;
+    }
+  }
+});
+
+// Click on label to open file input
+document.querySelector('label[for="regLicense"]')?.addEventListener('click', (e) => {
+  if (e.target.tagName !== 'INPUT') {
+    regLicenseInput.click();
+  }
+});
 
 registerForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const selectedRole = document.querySelector('input[name="regUserRole"]:checked').value;
   const password = document.getElementById('regPass').value;
   const confirm = document.getElementById('confirmPass').value;
 
   if (password !== confirm) {
-    e.preventDefault(); // Stop the form from submitting
     alert("Passwords do not match! Please try again.");
-  } else {
-    // If they match, you can proceed with your registration logic
-    alert("Registration Successful!");
+    return;
   }
+
+  if (selectedRole === 'eventmanager') {
+    const fullName = document.getElementById('regFullName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const businessName = document.getElementById('regBusinessName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const licenseFile = regLicenseInput.files.length;
+
+    if (!fullName || !email || !businessName || !phone || !licenseFile) {
+      alert('Please fill in all fields including business license upload.');
+      return;
+    }
+    alert('Registration submitted successfully! Your account is pending admin approval.');
+  } else {
+    alert('Registration Successful!');
+  }
+  
+  registerForm.reset();
+  regFileName.textContent = '';
+  registerModal.style.display = 'none';
 });
   // Password visibility toggle functionality
   document.querySelectorAll('.toggle-password').forEach(icon => {
