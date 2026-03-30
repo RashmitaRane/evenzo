@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ service.service_name }} | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; --text-dark: #333; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; } 
+        
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; left: 0; top: 0; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+        .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; width: 100%; }
+
+        /* Back Button */
+        .back-btn { color: #666; text-decoration: none; font-size: 16px; display: inline-block; margin-bottom: 20px; transition: 0.2s; font-weight: bold; }
+        .back-btn:hover { color: var(--primary); transform: translateX(-5px); }
+
+        /* Main Grid Layout */
+        .details-container { display: grid; grid-template-columns: 2fr 1.2fr; gap: 30px; align-items: start; }
+        
+        /* Image Carousel */
+        .slider-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; position: relative; }
+        .main-image { width: 100%; height: 450px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; }
+        .slider-controls { position: absolute; top: 50%; transform: translateY(-50%); width: calc(100% - 40px); display: flex; justify-content: space-between; padding: 0 10px; pointer-events: none; }
+        .slider-btn { background: rgba(255,255,255,0.8); color: var(--primary); border: none; width: 45px; height: 45px; font-size: 20px; cursor: pointer; border-radius: 50%; pointer-events: auto; transition: 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
+        .slider-btn:hover { background: var(--primary); color: white; }
+        
+        /* Information Card */
+        .info-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 30px; }
+        .info-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; }
+        .v-category { font-size: 13px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .v-title { font-size: 28px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        .v-business { font-size: 18px; color: #444; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        
+        .v-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .v-detail { font-size: 15px; color: #555; display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
+        .v-detail i { color: var(--primary); width: 20px; text-align: center; font-size: 18px; }
+
+        .desc-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .v-description { font-size: 16px; color: #666; line-height: 1.7; white-space: pre-wrap; }
+
+        /* Booking & Calendar Sidebar */
+        .booking-sidebar { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 20px rgba(149, 53, 83, 0.1); border-top: 5px solid var(--primary); position: sticky; top: 40px; }
+        .booking-sidebar h2 { color: var(--primary); margin-bottom: 20px; font-size: 22px; text-align: center; }
+
+        /* 🟢 ABSOLUTE CALENDAR CENTERING FIX */
+        .calendar-wrapper { display: flex; justify-content: center; margin-bottom: 25px; width: 100%; }
+        
+        /* This targets the calendar library directly to force it to the middle */
+        .flatpickr-calendar.inline { 
+            margin: 0 auto !important; 
+            box-shadow: none !important; 
+            border: 1px solid #ddd !important; 
+            border-radius: 8px !important; 
+            background: #fafafa !important; 
+        }
+        
+        /* Make read-only */
+        .flatpickr-innerContainer { pointer-events: none; } 
+        
+        /* RED HIGHLIGHT FOR UNAVAILABLE DATES */
+        .flatpickr-day.booked-date { background: #ffebee !important; border-color: #d32f2f !important; color: #d32f2f !important; font-weight: bold !important; text-decoration: line-through; }
+
+        /* Form */
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; font-size: 14px; }
+        input[type="date"] { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 15px; outline: none; }
+        input[type="date"]:focus { border-color: var(--primary); }
+        
+        .btn-book { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; transition: 0.2s; box-shadow: 0 4px 10px rgba(149, 53, 83, 0.2); }
+        .btn-book:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-book:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .date-warning { color: #d32f2f; font-size: 13px; font-weight: bold; margin-top: 8px; display: none; background: #ffebee; padding: 10px; border-radius: 6px; border: 1px solid #ffcdd2; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">Evenzo</div>
+        <nav class="nav-menu">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> My Dashboard</a>
+            <a href="{{ url_for('explore') }}" class="nav-item active"><i class="fas fa-search"></i> Find Vendors</a>
+        </nav>
+        <div class="logout-container">
+            <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <a href="{{ url_for('explore') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Search</a>
+        
+        <div class="details-container">
+            
+            <div>
+                <div class="slider-card">
+                    {% set raw_imgs = service.images.split(',') if service.images else [] %}
+                    {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+                    
+                    {% if clean_imgs|length > 0 %}
+                        <img id="mainCarouselImg" src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" class="main-image">
+                        
+                        {% if clean_imgs|length > 1 %}
+                        <div class="slider-controls">
+                            <button class="slider-btn" onclick="changeImage(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <button class="slider-btn" onclick="changeImage(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div style="margin-top: 15px; color: #888; font-weight: bold;">
+                            Image <span id="imgCounter">1</span> of {{ clean_imgs|length }}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="main-image" style="display: flex; align-items: center; justify-content: center; background: #eee; color: #aaa; font-size: 20px;">No Images Available</div>
+                    {% endif %}
+                </div>
+
+                <div class="info-card">
+                    <div class="info-header">
+                        <div class="v-category">{{ service.category }}</div>
+                        <div class="v-title">{{ service.service_name }}</div>
+                        <div class="v-business"><i class="fas fa-store" style="color: var(--primary);"></i> {{ service.business_name }}</div>
+                    </div>
+                    
+                    <div class="v-grid">
+                        <div class="v-detail"><i class="fas fa-user-tie"></i> <strong>Handler:</strong> {{ service.manager_name }}</div>
+                        <div class="v-detail"><i class="fas fa-phone-alt"></i> <strong>Contact:</strong> {{ service.phone }}</div>
+                        <div class="v-detail"><i class="fas fa-concierge-bell"></i> <strong>Core Service:</strong> {{ service.services_offered }}</div>
+                        <div class="v-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
+                        <div class="v-detail"><i class="fas fa-star"></i> <strong>Experience:</strong> {{ service.experience_years }} Years</div>
+                        <div class="v-detail"><i class="fas fa-tag"></i> <strong>Pricing:</strong> ₹{{ service.pricing }}</div>
+                    </div>
+
+                    <div class="desc-title">About this Package</div>
+                    <div class="v-description">{{ service.description }}</div>
+                </div>
+            </div>
+
+            <div class="booking-sidebar">
+                <h2><i class="fas fa-calendar-check"></i> Book this Vendor</h2>
+                
+                <div style="text-align: center; color: #666; font-size: 13px; margin-bottom: 10px;">
+                    Dates marked in <span style="color: #d32f2f; font-weight: bold;">Red</span> are Unavailable.
+                </div>
+                
+                <div class="calendar-wrapper">
+                    <div id="readonlyCalendar" data-booked="{{ service.unavailable_dates if service.unavailable_dates else '' }}"></div>
+                </div>
+
+                <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+
+                <form action="{{ url_for('book_vendor') }}" method="POST">
+                    <input type="hidden" name="manager_id" value="{{ service.manager_id }}">
+                    <input type="hidden" name="service_id" value="{{ service.id }}">
+                    
+                    <div class="form-group">
+                        <label>Select Your Event Date</label>
+                        <input type="date" name="event_date" id="bookingDateInput" required onchange="validateBookingDate()">
+                        
+                        <div id="dateWarning" class="date-warning">
+                            <i class="fas fa-exclamation-triangle"></i> This vendor is fully booked on this date. Please select an available date.
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-book" id="submitBookingBtn">Confirm Booking Request</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        // --- 1. IMAGE SLIDER LOGIC ---
+        {% if clean_imgs|length > 0 %}
+        const images = [
+            {% for img in clean_imgs %}
+                "{{ url_for('uploaded_file', filename=img) }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        let currentIdx = 0;
+        
+        function changeImage(direction) {
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = images.length - 1;
+            if (currentIdx >= images.length) currentIdx = 0;
+            
+            document.getElementById('mainCarouselImg').src = images[currentIdx];
+            document.getElementById('imgCounter').innerText = currentIdx + 1;
+        }
+        {% endif %}
+
+        // --- 2. CALENDAR RENDERING LOGIC ---
+        const calendarContainer = document.getElementById('readonlyCalendar');
+        const datesStr = calendarContainer.getAttribute('data-booked');
+        const bookedDatesArray = datesStr ? datesStr.split(',').map(d => d.trim()) : [];
+
+        flatpickr(calendarContainer, {
+            inline: true,
+            mode: "multiple",
+            defaultDate: bookedDatesArray,
+            clickOpens: false,
+            monthSelectorType: "static",
+            onChange: function(selectedDates, dateStr, instance) {
+                // Prevent users from clicking dates on the read-only calendar
+                instance.setDate(bookedDatesArray);
+            },
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                // Highlight booked dates in RED
+                const dateStrFormatted = dayElem.dateObj.getFullYear() + "-" + 
+                    String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + "-" + 
+                    String(dayElem.dateObj.getDate()).padStart(2, '0');
+
+                if (bookedDatesArray.includes(dateStrFormatted)) {
+                    dayElem.classList.add("booked-date");
+                }
+            }
+        });
+
+        // --- 3. BOOKING VALIDATION LOGIC ---
+        function validateBookingDate() {
+            const selectedDate = document.getElementById('bookingDateInput').value;
+            const warningBox = document.getElementById('dateWarning');
+            const submitBtn = document.getElementById('submitBookingBtn');
+
+            // If the user's chosen date is in the blocked array...
+            if (bookedDatesArray.includes(selectedDate)) {
+                warningBox.style.display = 'block';      // Show red error
+                submitBtn.disabled = true;               // Disable button
+            } else {
+                warningBox.style.display = 'none';       // Hide error
+                submitBtn.disabled = false;              // Enable button
+            }
+        }
+    </script>
+</body>
+</html>

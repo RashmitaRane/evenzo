@@ -50,7 +50,9 @@
         .vc-detail i { color: var(--primary); width: 16px; text-align: center; }
 
         .vc-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid #eee; padding-top: 15px; }
-        .btn-book { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        
+        /* 🟢 UPDATED: Styled properly so the link looks exactly like a button */
+        .btn-book { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; text-decoration: none; text-align: center; display: inline-block; }
         .btn-book:hover { opacity: 0.9; }
         
         /* Compare Checkbox */
@@ -67,7 +69,6 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; position: relative; max-height: 90vh; overflow-y: auto; }
         .compare-modal-content { max-width: 1000px; }
-        .book-modal-content { max-width: 400px; }
         .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; font-weight: bold; z-index: 2100; }
         .close-btn:hover { color: var(--primary); }
 
@@ -86,11 +87,6 @@
         .compare-table th { background: #fce4ec; color: var(--primary); font-size: 16px; }
         .compare-table td.feature-title { font-weight: bold; text-align: left; background: #fafafa; color: #555; }
         .compare-img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
-
-        /* Form styling */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
-        input[type="date"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -187,7 +183,7 @@
                             Compare
                         </label>
                         
-                        <button class="btn-book" onclick="openBookModal('{{ service.manager_id }}', '{{ service.id }}', '{{ service.business_name }}', '{{ service.service_name }}')">Book Now</button>
+                        <a href="{{ url_for('vendor_details', service_id=service.id) }}" class="btn-book">View & Book</a>
                     </div>
                 </div>
             </div>
@@ -209,26 +205,6 @@
             <span class="close-btn" onclick="closeCompareModal()">&times;</span>
             <h2 style="color: var(--primary); margin-bottom: 20px;">Vendor Comparison</h2>
             <div id="compareTableContainer" style="overflow-x: auto;"></div>
-        </div>
-    </div>
-
-    <div id="bookModal" class="modal">
-        <div class="modal-content book-modal-content">
-            <span class="close-btn" onclick="closeBookModal()">&times;</span>
-            <h2 style="color: var(--primary); margin-bottom: 10px;">Request Booking</h2>
-            <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Sending request to <strong id="bookBizName"></strong> for <strong id="bookServiceName"></strong></p>
-            
-            <form action="{{ url_for('book_vendor') }}" method="POST">
-                <input type="hidden" name="manager_id" id="hiddenManagerId">
-                <input type="hidden" name="service_id" id="hiddenServiceId">
-                
-                <div class="form-group">
-                    <label>Event Date</label>
-                    <input type="date" name="event_date" required>
-                </div>
-                
-                <button type="submit" class="btn-book" style="width: 100%; margin-top: 10px; padding: 12px;">Send Request</button>
-            </form>
         </div>
     </div>
 
@@ -298,9 +274,8 @@
         }
 
 
-        // --- 2. 🟢 UPDATED: SEARCH & FILTER LOGIC ---
+        // --- 2. SEARCH & FILTER LOGIC ---
         function filterVendors() {
-            // Convert inputs to lowercase to ensure case-insensitive matching
             let searchInput = document.getElementById('searchInput').value.toLowerCase();
             let catFilter = document.getElementById('categoryFilter').value.toLowerCase();
             let srvFilter = document.getElementById('serviceFilter').value.toLowerCase();
@@ -309,14 +284,11 @@
             let visibleCount = 0;
 
             cards.forEach(card => {
-                // Safely grab attributes and convert to lowercase
                 let textContent = card.innerText.toLowerCase();
                 let cardCategory = (card.getAttribute('data-category') || '').toLowerCase();
                 let cardService = (card.getAttribute('data-service') || '').toLowerCase();
 
                 let matchesSearch = textContent.includes(searchInput);
-                
-                // 🟢 FIXED: Now checks if the filter term is INCLUDED in the category string
                 let matchesCategory = (catFilter === 'all' || cardCategory.includes(catFilter));
                 let matchesService = (srvFilter === 'all' || cardService.includes(srvFilter));
 
@@ -414,18 +386,6 @@
         }
 
         function closeCompareModal() { document.getElementById('compareModal').style.display = 'none'; }
-
-
-        // --- 4. BOOKING MODAL LOGIC ---
-        function openBookModal(managerId, serviceId, businessName, serviceName) {
-            document.getElementById('hiddenManagerId').value = managerId;
-            document.getElementById('hiddenServiceId').value = serviceId;
-            document.getElementById('bookBizName').innerText = businessName;
-            document.getElementById('bookServiceName').innerText = serviceName;
-            document.getElementById('bookModal').style.display = 'flex';
-        }
-
-        function closeBookModal() { document.getElementById('bookModal').style.display = 'none'; }
     </script>
 </body>
 </html>
