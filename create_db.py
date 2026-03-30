@@ -37,11 +37,12 @@ def initialize_evenzo_database():
     ''')
 
     # 3. SERVICES / PORTFOLIO TABLE
+    # 🟢 FIXED: Removed the CHECK constraint on category to allow multiple selections
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_id INTEGER NOT NULL,
-            category TEXT CHECK(category IN ('Wedding', 'Personal', 'Corporate', 'Public')),
+            category TEXT,
             service_name TEXT NOT NULL,
             service_location TEXT,       
             services_offered TEXT,       
@@ -75,6 +76,37 @@ def initialize_evenzo_database():
     # --- SMART UPDATE LOGIC FOR EXISTING DB ---
     # ==========================================
     
+    # 🟢 FIXED: Automatically remove the old CHECK constraint if it exists in an older database
+    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='services'")
+    table_sql = cursor.fetchone()
+    if table_sql and "CHECK(category IN" in table_sql[0]:
+        print("🔧 Removing strict category rules from 'services' table to allow multiple selections...")
+        cursor.execute("ALTER TABLE services RENAME TO services_old_temp")
+        
+        cursor.execute('''
+            CREATE TABLE services (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                manager_id INTEGER NOT NULL,
+                category TEXT,
+                service_name TEXT NOT NULL,
+                service_location TEXT,       
+                services_offered TEXT,       
+                experience_years INTEGER,    
+                pricing TEXT,                
+                images TEXT,                 
+                description TEXT,
+                FOREIGN KEY (manager_id) REFERENCES users (id) ON DELETE CASCADE
+            )
+        ''')
+        
+        # Safely copy old data into the new table
+        cursor.execute('''
+            INSERT INTO services (id, manager_id, category, service_name, service_location, services_offered, experience_years, pricing, images, description)
+            SELECT id, manager_id, category, service_name, service_location, services_offered, experience_years, pricing, images, description FROM services_old_temp
+        ''')
+        cursor.execute("DROP TABLE services_old_temp")
+        print("✅ Strict category rules successfully removed!")
+
     # Check and upgrade manager_profiles table
     try:
         cursor.execute("ALTER TABLE manager_profiles ADD COLUMN profile_pic TEXT")
@@ -82,7 +114,7 @@ def initialize_evenzo_database():
     except sqlite3.OperationalError:
         pass # Column already exists
 
-    # Check and upgrade services table
+    # Check and upgrade services table for missing columns
     new_service_columns = [
         "service_location TEXT",
         "services_offered TEXT",

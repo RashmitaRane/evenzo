@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 from werkzeug.utils import secure_filename
+from datetime import timedelta  # 🟢 NEW: Required for setting login duration
 
 # UPDATED: Flask now points to your custom folder structure
 app = Flask(__name__, 
@@ -10,6 +11,9 @@ app = Flask(__name__,
 
 app.secret_key = 'evenzo_secret_key_123'  # Required for sessions
 app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# 🟢 NEW: Keep users logged in for 30 days (even if they close the browser)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30) 
 
 # Ensure upload folder exists
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
@@ -100,16 +104,48 @@ def login():
     conn.close()
 
     if user:
+        # 🟢 NEW: This tells Flask to apply the 30-day lifetime to this session
+        session.permanent = True 
+        
         session['user_id'] = user['id']
         session['user_name'] = user['full_name']
         session['role'] = user['role']
 
+        # REDIRECT BASED ON ROLE
         if user['role'] == 'eventmanager':
             return redirect(url_for('dashboard'))
+        elif user['role'] == 'user':
+            return redirect(url_for('user_dashboard')) # Redirects Clients to user dashboard
         return redirect(url_for('index'))
     else:
         flash("Invalid Credentials or Role.")
         return redirect(url_for('index'))
+
+
+# --- USER (CLIENT) DASHBOARD ROUTE ---
+@app.route('/user_dashboard')
+def user_dashboard():
+    # Security: Ensure only logged-in users can access this page
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+
+    conn = get_db_connection()
+    
+    # Fetch User details
+    user_info = conn.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],)).fetchone()
+    
+    # Fetch User's bookings & join with the manager profiles to get business names
+    my_bookings = conn.execute('''
+        SELECT b.*, m.business_name, s.service_name 
+        FROM bookings b 
+        JOIN manager_profiles m ON b.manager_id = m.user_id 
+        LEFT JOIN services s ON b.service_id = s.id
+        WHERE b.client_id = ?
+    ''', (session['user_id'],)).fetchall()
+    
+    conn.close()
+
+    return render_template('user_dashboard.html', user=user_info, bookings=my_bookings)
 
 # --- SPECIFIC DASHBOARD LOGIC ---
 # --- DYNAMIC DASHBOARD ROUTE ---
@@ -222,14 +258,16 @@ def portfolio():
     conn = get_db_connection()
 
     if request.method == 'POST':
-        category = request.form.get('category')
+        # 🟢 UPDATED: Grabs multiple categories and joins them with a comma
+        category = ", ".join(request.form.getlist('category'))
+        
         service_name = request.form.get('service_name')
         service_location = request.form.get('service_location')
         services_offered = request.form.get('services_offered')
         experience_years = request.form.get('experience_years')
         description = request.form.get('description')
         
-        # --- NEW: COMBINE AMOUNT AND UNIT ---
+        # --- COMBINE AMOUNT AND UNIT ---
         pricing_amount = request.form.get('pricing_amount')
         pricing_unit = request.form.get('pricing_unit')
         combined_pricing = f"{pricing_amount} {pricing_unit}"
@@ -281,14 +319,16 @@ def edit_portfolio(service_id):
         return redirect(url_for('portfolio'))
 
     # Get standard text fields
-    category = request.form.get('category')
+    # 🟢 UPDATED: Grabs multiple categories and joins them with a comma
+    category = ", ".join(request.form.getlist('category'))
+    
     service_name = request.form.get('service_name')
     service_location = request.form.get('service_location')
     services_offered = request.form.get('services_offered')
     experience_years = request.form.get('experience_years')
     description = request.form.get('description')
     
-    # --- NEW: COMBINE AMOUNT AND UNIT ---
+    # --- COMBINE AMOUNT AND UNIT ---
     pricing_amount = request.form.get('pricing_amount')
     pricing_unit = request.form.get('pricing_unit')
     combined_pricing = f"{pricing_amount} {pricing_unit}"
@@ -361,10 +401,54 @@ def delete_portfolio(service_id):
     return redirect(url_for('portfolio'))
 
 
+# --- EXPLORE / FIND VENDORS PAGE ---
+@app.route('/explore')
+def explore():
+    # Ensure only users (clients) can access the explore page
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+
+    conn = get_db_connection()
+    
+    # Fetch ALL dynamic services combined with the Event Manager's Business Name
+    all_services = conn.execute('''
+        SELECT s.*, m.business_name, m.profile_pic 
+        FROM services s
+        JOIN manager_profiles m ON s.manager_id = m.user_id
+    ''').fetchall()
+    
+    conn.close()
+    
+    return render_template('explore.html', services=all_services)
+
+# --- BOOK VENDOR LOGIC ---
+@app.route('/book_vendor', methods=['POST'])
+def book_vendor():
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+
+    manager_id = request.form.get('manager_id')
+    service_id = request.form.get('service_id')
+    event_date = request.form.get('event_date')
+    
+    conn = get_db_connection()
+    
+    # Insert a new pending booking into the database
+    conn.execute('''
+        INSERT INTO bookings (client_id, manager_id, service_id, event_date, status)
+        VALUES (?, ?, ?, ?, 'pending')
+    ''', (session['user_id'], manager_id, service_id, event_date))
+    
+    conn.commit()
+    conn.close()
+    
+    flash("Booking Request Sent Successfully!")
+    return redirect(url_for('user_dashboard'))
+
 # --- LOGOUT ---
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.clear() # This explicitly destroys the permanent session!
     return redirect(url_for('index'))
 
 if __name__ == '__main__':

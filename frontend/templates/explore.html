@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Vendors | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; --text-dark: #333; }
+        
+        /* UNIFIED LAYOUT */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; padding-bottom: 80px; } 
+        
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; left: 0; top: 0; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+        .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+
+        header { margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .welcome-text h1 { color: var(--primary); font-size: 28px; margin-bottom: 5px; }
+
+        /* Filter Bar Styling */
+        .filter-bar { display: flex; gap: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; flex-wrap: wrap; }
+        .filter-group { flex: 1; min-width: 200px; display: flex; flex-direction: column; }
+        .filter-group label { font-size: 13px; font-weight: bold; color: #666; margin-bottom: 5px; text-transform: uppercase; }
+        .filter-group input, .filter-group select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; outline: none; }
+        .filter-group input:focus, .filter-group select:focus { border-color: var(--primary); }
+
+        /* Dynamic Vendor Grid */
+        .vendor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        .vendor-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; position: relative; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .vendor-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(149, 53, 83, 0.15); border-color: var(--primary); }
+        
+        .vc-image { width: 100%; height: 180px; object-fit: cover; background: #ddd; transition: 0.3s; }
+        .image-wrapper { position: relative; cursor: pointer; overflow: hidden; }
+        .image-wrapper:hover .vc-image { transform: scale(1.05); }
+        .image-count-badge { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; pointer-events: none; }
+
+        .vc-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .vc-category { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .vc-title { font-size: 18px; color: var(--primary); font-weight: bold; margin-bottom: 10px; line-height: 1.3; }
+        .vc-business { font-size: 14px; color: #555; margin-bottom: 15px; font-weight: 600; }
+        
+        .vc-detail { font-size: 14px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .vc-detail i { color: var(--primary); width: 16px; text-align: center; }
+
+        .vc-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid #eee; padding-top: 15px; }
+        .btn-book { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-book:hover { opacity: 0.9; }
+        
+        /* Compare Checkbox */
+        .compare-label { display: flex; align-items: center; gap: 5px; font-size: 14px; color: #555; cursor: pointer; font-weight: 600; }
+        .compare-label input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
+
+        /* Floating Compare Bar */
+        .floating-compare-bar { position: fixed; bottom: -100px; left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); background: white; padding: 15px 40px; box-shadow: 0 -5px 20px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; transition: 0.4s; z-index: 900; border-top: 3px solid var(--primary); }
+        .floating-compare-bar.show { bottom: 0; }
+        .compare-count { font-size: 18px; font-weight: bold; color: var(--primary); }
+        .btn-compare-now { background: var(--primary); color: white; border: none; padding: 10px 25px; font-size: 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; position: relative; max-height: 90vh; overflow-y: auto; }
+        .compare-modal-content { max-width: 1000px; }
+        .book-modal-content { max-width: 400px; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; font-weight: bold; z-index: 2100; }
+        .close-btn:hover { color: var(--primary); }
+
+        /* SLIDER CSS */
+        .slider-content { background: transparent; box-shadow: none; max-width: 900px; text-align: center; padding: 0; overflow: visible; display: flex; align-items: center; justify-content: center; position: relative; }
+        #fullSizeImage { max-width: 100%; max-height: 80vh; border-radius: 8px; border: 4px solid white; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: 0.3s; }
+        .slider-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); color: white; border: none; font-size: 30px; width: 50px; height: 50px; cursor: pointer; border-radius: 50%; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+        .slider-btn:hover { background: var(--primary); }
+        .prev-btn { left: -70px; }
+        .next-btn { right: -70px; }
+        #imageCounterText { position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); color: white; font-weight: bold; letter-spacing: 1px; }
+
+        /* Comparison Table */
+        .compare-table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; }
+        .compare-table th, .compare-table td { padding: 15px; border: 1px solid #eee; width: 25%; }
+        .compare-table th { background: #fce4ec; color: var(--primary); font-size: 16px; }
+        .compare-table td.feature-title { font-weight: bold; text-align: left; background: #fafafa; color: #555; }
+        .compare-img { width: 100px; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+
+        /* Form styling */
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; }
+        input[type="date"], input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">Evenzo</div>
+        <nav class="nav-menu">
+            <a href="{{ url_for('user_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> My Dashboard</a>
+            <a href="{{ url_for('explore') }}" class="nav-item active"><i class="fas fa-search"></i> Find Vendors</a>
+        </nav>
+        <div class="logout-container">
+            <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <header>
+            <div class="welcome-text">
+                <h1>Find the Perfect Event Handler</h1>
+                <p>Search, filter, and compare vendors to find the best match for your event.</p>
+            </div>
+        </header>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Search by Name</label>
+                <input type="text" id="searchInput" placeholder="e.g., divine caterers..." onkeyup="filterVendors()">
+            </div>
+            <div class="filter-group">
+                <label>Event Category</label>
+                <select id="categoryFilter" onchange="filterVendors()">
+                    <option value="all">All Categories</option>
+                    <option value="wedding">Wedding</option>
+                    <option value="personal">Personal Events</option>
+                    <option value="corporate">Corporate Events</option>
+                    <option value="public">Public Events</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Service Type</label>
+                <select id="serviceFilter" onchange="filterVendors()">
+                    <option value="all">All Services</option>
+                    <option value="hosting">Hosting</option>
+                    <option value="decoration">Decoration</option>
+                    <option value="dj">DJ</option>
+                    <option value="photography">Photography</option>
+                    <option value="catering">Catering</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="vendor-grid" id="vendorGrid">
+            {% for service in services %}
+            <div class="vendor-card" data-category="{{ service.category }}" data-service="{{ service.services_offered }}">
+                
+                <div class="image-wrapper" onclick="openSlider('{{ service.images }}', 0)" title="Click to view full portfolio gallery">
+                    {% set raw_imgs = service.images.split(',') if service.images else [] %}
+                    {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+                    {% set total_imgs = clean_imgs|length %}
+                    
+                    {% if total_imgs > 0 %}
+                        <img src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" class="vc-image" alt="Portfolio Image">
+                        {% if total_imgs > 1 %}
+                        <div class="image-count-badge">
+                            <i class="fas fa-images"></i> {{ total_imgs }}
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="vc-image" style="display: flex; align-items: center; justify-content: center; color: #aaa;">No Image</div>
+                    {% endif %}
+                </div>
+
+                <div class="vc-body">
+                    <div class="vc-category">{{ service.category }}</div>
+                    <div class="vc-title">{{ service.service_name }}</div>
+                    <div class="vc-business"><i class="fas fa-store"></i> {{ service.business_name }}</div>
+                    
+                    <div class="vc-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                    <div class="vc-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
+                    <div class="vc-detail"><i class="fas fa-tag"></i> <strong>Pricing:</strong> ₹{{ service.pricing }}</div>
+                    <div class="vc-detail"><i class="fas fa-star"></i> <strong>Exp:</strong> {{ service.experience_years }} Years</div>
+
+                    <div class="vc-actions">
+                        <label class="compare-label">
+                            <input type="checkbox" class="compare-checkbox" 
+                                data-id="{{ service.id }}"
+                                data-business="{{ service.business_name }}"
+                                data-title="{{ service.service_name }}"
+                                data-service="{{ service.services_offered }}"
+                                data-price="₹{{ service.pricing }}"
+                                data-exp="{{ service.experience_years }} Years"
+                                data-loc="{{ service.service_location }}"
+                                data-img="{{ url_for('uploaded_file', filename=clean_imgs[0]) if total_imgs > 0 else '' }}">
+                            Compare
+                        </label>
+                        
+                        <button class="btn-book" onclick="openBookModal('{{ service.manager_id }}', '{{ service.id }}', '{{ service.business_name }}', '{{ service.service_name }}')">Book Now</button>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p style="color: #888;">No event handlers are currently available. Check back later!</p>
+            {% endfor %}
+            
+            <p id="noMatchesMsg" style="display: none; color: #888; grid-column: 1 / -1; text-align: center; padding: 20px;">No vendors match your exact filters. Try clearing them!</p>
+        </div>
+    </div>
+
+    <div class="floating-compare-bar" id="compareBar">
+        <div class="compare-count" id="compareCountText">0 Vendors Selected</div>
+        <button class="btn-compare-now" onclick="openCompareModal()">Compare Now side-by-side</button>
+    </div>
+
+    <div id="compareModal" class="modal">
+        <div class="modal-content compare-modal-content">
+            <span class="close-btn" onclick="closeCompareModal()">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Vendor Comparison</h2>
+            <div id="compareTableContainer" style="overflow-x: auto;"></div>
+        </div>
+    </div>
+
+    <div id="bookModal" class="modal">
+        <div class="modal-content book-modal-content">
+            <span class="close-btn" onclick="closeBookModal()">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 10px;">Request Booking</h2>
+            <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Sending request to <strong id="bookBizName"></strong> for <strong id="bookServiceName"></strong></p>
+            
+            <form action="{{ url_for('book_vendor') }}" method="POST">
+                <input type="hidden" name="manager_id" id="hiddenManagerId">
+                <input type="hidden" name="service_id" id="hiddenServiceId">
+                
+                <div class="form-group">
+                    <label>Event Date</label>
+                    <input type="date" name="event_date" required>
+                </div>
+                
+                <button type="submit" class="btn-book" style="width: 100%; margin-top: 10px; padding: 12px;">Send Request</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="imageViewerModal" class="modal" onclick="closeImageViewer(event)">
+        <div class="modal-content slider-content">
+            <span class="close-btn" onclick="forceCloseSlider()" style="color: white; top: -40px; right: -20px;">&times;</span>
+            
+            <button class="slider-btn prev-btn" id="sliderPrevBtn" onclick="slideImage(-1, event)">&#10094;</button>
+            
+            <div style="position: relative;">
+                <img id="fullSizeImage" src="" alt="Full Screen Portfolio Image">
+                <div id="imageCounterText"></div>
+            </div>
+            
+            <button class="slider-btn next-btn" id="sliderNextBtn" onclick="slideImage(1, event)">&#10095;</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SLIDER LOGIC ---
+        let sliderImagesArray = [];
+        let currentSliderIndex = 0;
+
+        function openSlider(imagesString, startIndex) {
+            if (!imagesString || imagesString.trim() === '') return;
+            sliderImagesArray = imagesString.split(',').filter(img => img.trim() !== '');
+            
+            if (sliderImagesArray.length > 0) {
+                currentSliderIndex = startIndex;
+                updateSliderView();
+                document.getElementById('imageViewerModal').style.display = 'flex';
+            }
+        }
+
+        function updateSliderView() {
+            const imgEl = document.getElementById('fullSizeImage');
+            imgEl.src = "/uploads/" + sliderImagesArray[currentSliderIndex].trim();
+            
+            document.getElementById('imageCounterText').innerText = `${currentSliderIndex + 1} of ${sliderImagesArray.length}`;
+
+            const showArrows = sliderImagesArray.length > 1 ? 'flex' : 'none';
+            document.getElementById('sliderPrevBtn').style.display = showArrows;
+            document.getElementById('sliderNextBtn').style.display = showArrows;
+        }
+
+        function slideImage(direction, event) {
+            if (event) event.stopPropagation(); 
+            
+            currentSliderIndex += direction;
+            
+            if (currentSliderIndex < 0) {
+                currentSliderIndex = sliderImagesArray.length - 1;
+            } else if (currentSliderIndex >= sliderImagesArray.length) {
+                currentSliderIndex = 0;
+            }
+            
+            updateSliderView();
+        }
+
+        function closeImageViewer(e) {
+            if (e.target.id === 'imageViewerModal') {
+                document.getElementById('imageViewerModal').style.display = 'none';
+            }
+        }
+        function forceCloseSlider() {
+            document.getElementById('imageViewerModal').style.display = 'none';
+        }
+
+
+        // --- 2. 🟢 UPDATED: SEARCH & FILTER LOGIC ---
+        function filterVendors() {
+            // Convert inputs to lowercase to ensure case-insensitive matching
+            let searchInput = document.getElementById('searchInput').value.toLowerCase();
+            let catFilter = document.getElementById('categoryFilter').value.toLowerCase();
+            let srvFilter = document.getElementById('serviceFilter').value.toLowerCase();
+            
+            let cards = document.querySelectorAll('.vendor-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                // Safely grab attributes and convert to lowercase
+                let textContent = card.innerText.toLowerCase();
+                let cardCategory = (card.getAttribute('data-category') || '').toLowerCase();
+                let cardService = (card.getAttribute('data-service') || '').toLowerCase();
+
+                let matchesSearch = textContent.includes(searchInput);
+                
+                // 🟢 FIXED: Now checks if the filter term is INCLUDED in the category string
+                let matchesCategory = (catFilter === 'all' || cardCategory.includes(catFilter));
+                let matchesService = (srvFilter === 'all' || cardService.includes(srvFilter));
+
+                if (matchesSearch && matchesCategory && matchesService) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noMatchesMsg').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        // --- 3. COMPARISON ENGINE LOGIC ---
+        const checkboxes = document.querySelectorAll('.compare-checkbox');
+        const compareBar = document.getElementById('compareBar');
+        const compareCountText = document.getElementById('compareCountText');
+        let selectedVendors = [];
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.checked && selectedVendors.length >= 3) {
+                    this.checked = false;
+                    alert("You can only compare a maximum of 3 vendors at a time.");
+                    return;
+                }
+
+                const vendorData = {
+                    id: this.dataset.id,
+                    business: this.dataset.business,
+                    title: this.dataset.title,
+                    service: this.dataset.service,
+                    price: this.dataset.price,
+                    exp: this.dataset.exp,
+                    loc: this.dataset.loc,
+                    img: this.dataset.img
+                };
+
+                if (this.checked) {
+                    selectedVendors.push(vendorData);
+                } else {
+                    selectedVendors = selectedVendors.filter(v => v.id !== vendorData.id);
+                }
+
+                if (selectedVendors.length > 0) {
+                    compareBar.classList.add('show');
+                    compareCountText.innerText = `${selectedVendors.length} Vendor${selectedVendors.length > 1 ? 's' : ''} Selected`;
+                } else {
+                    compareBar.classList.remove('show');
+                }
+            });
+        });
+
+        function openCompareModal() {
+            const container = document.getElementById('compareTableContainer');
+            
+            let tableHTML = `<table class="compare-table">
+                <thead><tr><th style="background: white;"></th>`;
+            
+            selectedVendors.forEach(v => {
+                tableHTML += `<th>${v.business}</th>`;
+            });
+            tableHTML += `</tr></thead><tbody>`;
+
+            tableHTML += `<tr><td class="feature-title">Package / Title</td>`;
+            selectedVendors.forEach(v => {
+                tableHTML += `<td>
+                    ${v.img ? `<img src="${v.img}" class="compare-img">` : ''}<br>
+                    <strong>${v.title}</strong>
+                </td>`;
+            });
+            tableHTML += `</tr>`;
+
+            tableHTML += `<tr><td class="feature-title">Core Service</td>`;
+            selectedVendors.forEach(v => tableHTML += `<td>${v.service}</td>`);
+            tableHTML += `</tr>`;
+
+            tableHTML += `<tr><td class="feature-title">Starting Price</td>`;
+            selectedVendors.forEach(v => tableHTML += `<td style="color: var(--primary); font-weight: bold; font-size: 18px;">${v.price}</td>`);
+            tableHTML += `</tr>`;
+
+            tableHTML += `<tr><td class="feature-title">Experience</td>`;
+            selectedVendors.forEach(v => tableHTML += `<td>${v.exp}</td>`);
+            tableHTML += `</tr>`;
+
+            tableHTML += `<tr><td class="feature-title">Location</td>`;
+            selectedVendors.forEach(v => tableHTML += `<td>${v.loc}</td>`);
+            tableHTML += `</tr>`;
+
+            tableHTML += `</tbody></table>`;
+            
+            container.innerHTML = tableHTML;
+            document.getElementById('compareModal').style.display = 'flex';
+        }
+
+        function closeCompareModal() { document.getElementById('compareModal').style.display = 'none'; }
+
+
+        // --- 4. BOOKING MODAL LOGIC ---
+        function openBookModal(managerId, serviceId, businessName, serviceName) {
+            document.getElementById('hiddenManagerId').value = managerId;
+            document.getElementById('hiddenServiceId').value = serviceId;
+            document.getElementById('bookBizName').innerText = businessName;
+            document.getElementById('bookServiceName').innerText = serviceName;
+            document.getElementById('bookModal').style.display = 'flex';
+        }
+
+        function closeBookModal() { document.getElementById('bookModal').style.display = 'none'; }
+    </script>
+</body>
+</html>
