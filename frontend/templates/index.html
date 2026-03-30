@@ -105,6 +105,10 @@
           <span>User</span>
         </label>
         <label class="radio-label">
+          <input type="radio" name="regUserRole" value="admin">
+          <span>Admin</span>
+        </label>
+        <label class="radio-label">
           <input type="radio" name="regUserRole" value="eventmanager">
           <span>Event Manager</span>
         </label>
@@ -250,6 +254,15 @@
             <li><a href="#">Services</a></li>
           </ul>
         </div>
+        <div class="footer-section">
+          <h4>Professional</h4>
+          <ul>
+            <li><a href="javascript:void(0)" id="openRegisterFooter">Register as a Event Manager</a></li>
+            <li><a href="javascript:void(0)" id="openRegisterAdminFooter">Register as Admin</a></li>
+
+          </ul>
+        </div>
+      
         
       </div>
       <div class="footer-bottom">
@@ -293,7 +306,7 @@
     {
       img: "/frontend/static/images/fest.jpg",
       text: ["PUBLIC EVENTS ", "Grand & Energetic", "Bringing Events to Life", "Explore Now"],
-      link: "userdashboard.html"
+      link: "/frontend/templates/Publicservices.html"
     }
   ];
 
@@ -392,6 +405,16 @@ window.addEventListener('click', (e) => {
   if (e.target === registerModal) {
     registerModal.style.display = 'none';
   }
+});
+const openRegisterFooter = document.getElementById('openRegisterFooter');
+openRegisterFooter.addEventListener('click', (e) => {
+  e.preventDefault();
+  registerModal.style.display = 'flex';
+});
+const openRegisterAdminFooter = document.getElementById('openRegisterAdminFooter');
+openRegisterAdminFooter.addEventListener('click', (e) => {
+  e.preventDefault();
+  registerModal.style.display = 'flex';
 });
 const registerForm = document.getElementById('registerForm');
 const roleRadios = document.querySelectorAll('input[name="regUserRole"]');
