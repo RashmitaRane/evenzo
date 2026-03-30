@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Document</title>
+  <title>Evenzo | Event Planning</title>
   <link href="https://fonts.googleapis.com/css2?family=Sanchez&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
-  <link rel="stylesheet" href="/frontend/static/styles.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
   <div class="main">
@@ -14,14 +14,14 @@
       <div class="logo">Evenzo</div>
       
       <ul class="links">
-        <li>Home</li>
+        <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Home</a></li>
        <li class="dropdown">
         <a href="javascript:void(0)" class="dropbtn">Services</a>
         <ul class="dropdown-content">
-          <li><a href="/frontend/templates/weddingservices.html">WEDDING EVENTS</a></li>
-          <li><a href="/frontend/templates/Specialservices.html">PERSONAL EVENTS</a></li>
-          <li><a href="/frontend/templates/Corporateservices.html">CORPORATE EVENT</a></li>
-          <li><a href="/frontend/templates/publicservices.html">PUBLIC EVENTS</a></li>
+          <li><a href="{{ url_for('weddingservices') }}">WEDDING EVENTS</a></li>
+          <li><a href="{{ url_for('specialservices') }}">PERSONAL EVENTS</a></li>
+          <li><a href="{{ url_for('corporateservices') }}">CORPORATE EVENT</a></li>
+          <li><a href="{{ url_for('publicservices') }}">PUBLIC EVENTS</a></li>
         </ul>
       </li>
         <li><a href="#about">About</a></li>
@@ -30,156 +30,146 @@
         </li>
       </ul>
     </div>
+
     <div id="loginModal" class="modal-overlay">
-  <div class="login-card">
-    <span class="close-modal">&times;</span>
-    <h2>LOGIN</h2>
-    <form>
-      <div class="role-selection">
-        <label class="radio-label">
-          <input type="radio" name="userRole" value="user" checked>
-          <span>User</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="userRole" value="admin">
-          <span>Admin</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="userRole" value="eventmanager">
-          <span>Event Manager</span>
-        </label>
-      </div>
-      <div class="input-group">
-        <input type="email" placeholder="Email" required>
-        <i class="fas fa-envelope"></i>
-      </div>
-      <div class="input-group password-group">
-        <input type="password" placeholder="Password" class="password-input" required>
-        <i class="fas fa-eye-slash toggle-password"></i>
-      </div>
-      <div class="remember-me">
-        <a href="#" class="forgot-link">Forgot Password?</a>
-      </div>
-      <button type="submit" class="modal-login-btn">Login</button>
-      <div class="register-text">
-        Don't have an Account? <a href="#">Register</a>
-      </div>
-    </form>
-  </div>
-</div>
-<div id="forgotModal" class="modal-overlay">
-  <div class="login-card">
-    <span class="close-modal" id="closeForgot">&times;</span>
-    <h2 id="forgotTitle">FORGOT PASSWORD</h2>
-    
-    <form id="forgotForm">
-      <div id="emailStep">
-        <div class="input-group">
-          <input type="email" id="forgotEmail" placeholder="Enter your Email" required>
-          <i class="fas fa-envelope"></i>
-        </div>
-        <button type="submit" class="modal-login-btn">Submit</button>
-      </div>
-
-      <div id="otpStep" style="display: none;">
-        <p style="text-align: center; color: #fff; font-size: 14px; margin-bottom: 15px;">
-           OTP has been sent to your email
-        </p>
-        <div class="input-group">
-          <input type="text" id="otpCode" placeholder="Enter OTP" required>
-          <i class="fas fa-key"></i>
-        </div>
-        <button type="button" class="modal-login-btn" id="verifyOtpBtn">Verify & Submit</button>
-      </div>
-    </form>
-  </div>
-</div>
-<div id="registerModal" class="modal-overlay">
-  <div class="login-card">
-    <span class="close-modal" id="closeRegister">&times;</span>
-    <h2>REGISTER</h2>
-    <form id="registerForm">
-      <div class="role-selection">
-        <label class="radio-label">
-          <input type="radio" name="regUserRole" value="user" checked>
-          <span>User</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="regUserRole" value="admin">
-          <span>Admin</span>
-        </label>
-        <label class="radio-label">
-          <input type="radio" name="regUserRole" value="eventmanager">
-          <span>Event Manager</span>
-        </label>
-      </div>
-
-      <!-- Form Layout (Dynamic: Single Column for Users, Two Columns for Event Managers) -->
-      <div class="form-columns" id="formColumnsContainer">
-        <!-- LEFT COLUMN -->
-        <div class="form-column">
+      <div class="login-card">
+        <span class="close-modal">&times;</span>
+        <h2>LOGIN</h2>
+        <form action="/login" method="POST">
+          <div class="role-selection">
+            <label class="radio-label">
+              <input type="radio" name="userRole" value="user" checked>
+              <span>User</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="userRole" value="admin">
+              <span>Admin</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="userRole" value="eventmanager">
+              <span>Event Manager</span>
+            </label>
+          </div>
           <div class="input-group">
-            <input type="text" id="regFullName" placeholder="Full Name" required>
-            <i class="fas fa-user"></i>
-          </div>
-          <!-- Business Name (Event Manager Only) -->
-          <div class="input-group" id="businessNameGroup" style="display: none;">
-            <input type="text" id="regBusinessName" placeholder="Business Name" required>
-            <i class="fas fa-briefcase"></i>
-          </div>
-          <div class="input-group password-group">
-            <input type="password" id="regPass" placeholder="Create Password" class="password-input" required>
-            <i class="fas fa-eye-slash toggle-password"></i>
-          </div>
-        </div>
-
-        <!-- RIGHT COLUMN -->
-        <div class="form-column">
-          <div class="input-group">
-            <input type="email" id="regEmail" placeholder="Email" required>
+            <input type="email" name="email" placeholder="Email" required>
             <i class="fas fa-envelope"></i>
           </div>
-          <!-- Phone (Event Manager Only) -->
-          <div class="input-group" id="phoneGroup" style="display: none;">
-            <input type="tel" id="regPhone" placeholder="Phone Number" required>
-            <i class="fas fa-phone"></i>
-          </div>
           <div class="input-group password-group">
-            <input type="password" id="confirmPass" placeholder="Confirm Password" class="password-input" required>
+            <input type="password" name="password" placeholder="Password" class="password-input" required>
             <i class="fas fa-eye-slash toggle-password"></i>
           </div>
-        </div>
-      </div>
-
-      <!-- License Upload (Full Width - Event Manager Only) -->
-      <div id="licenseUploadGroup" style="display: none; position: relative; margin-bottom: 20px; margin-top: 20px;">
-        <label for="regLicense" style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); display: block; transition: all 0.3s ease;">
-          <div style="font-size: 22px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">
-            <i class="fas fa-file-upload"></i>
+          <div class="remember-me">
+            <a href="#" class="forgot-link">Forgot Password?</a>
           </div>
-          <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">Upload Business License</div>
-          <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 5px;">(PDF, JPG, PNG - Max 5MB)</div>
-          <div id="regFileName" style="color: #4caf50; margin-top: 8px; font-size: 12px;"></div>
-          <input type="file" id="regLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" required>
-        </label>
+          <button type="submit" class="modal-login-btn">Login</button>
+          <div class="register-text">
+            Don't have an Account? <a href="#">Register</a>
+          </div>
+        </form>
       </div>
+    </div>
 
-      <button type="submit" class="modal-login-btn">Create Account</button>
-      <div class="register-text">
-        Already have an account? <a href="#" id="backToLogin">Login</a>
+    <div id="forgotModal" class="modal-overlay">
+      <div class="login-card">
+        <span class="close-modal" id="closeForgot">&times;</span>
+        <h2 id="forgotTitle">FORGOT PASSWORD</h2>
+        <form id="forgotForm">
+          <div id="emailStep">
+            <div class="input-group">
+              <input type="email" id="forgotEmail" placeholder="Enter your Email" required>
+              <i class="fas fa-envelope"></i>
+            </div>
+            <button type="submit" class="modal-login-btn">Submit</button>
+          </div>
+          <div id="otpStep" style="display: none;">
+            <p style="text-align: center; color: #fff; font-size: 14px; margin-bottom: 15px;">
+               OTP has been sent to your email
+            </p>
+            <div class="input-group">
+              <input type="text" id="otpCode" placeholder="Enter OTP" required>
+              <i class="fas fa-key"></i>
+            </div>
+            <button type="button" class="modal-login-btn" id="verifyOtpBtn">Verify & Submit</button>
+          </div>
+        </form>
       </div>
-    </form>
-  </div>
-</div>
+    </div>
+
+    <div id="registerModal" class="modal-overlay">
+      <div class="login-card">
+        <span class="close-modal" id="closeRegister">&times;</span>
+        <h2>REGISTER</h2>
+        <form id="registerForm" action="/register" method="POST" enctype="multipart/form-data">
+          <div class="role-selection">
+            <label class="radio-label">
+              <input type="radio" name="regUserRole" value="user" checked>
+              <span>User</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="regUserRole" value="eventmanager">
+              <span>Event Manager</span>
+            </label>
+          </div>
+
+          <div class="form-columns" id="formColumnsContainer">
+            <div class="form-column">
+              <div class="input-group">
+                <input type="text" id="regFullName" name="regFullName" placeholder="Full Name" required>
+                <i class="fas fa-user"></i>
+              </div>
+              <div class="input-group" id="businessNameGroup" style="display: none;">
+                <input type="text" id="regBusinessName" name="regBusinessName" placeholder="Business Name">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div class="input-group password-group">
+                <input type="password" id="regPass" name="regPass" placeholder="Create Password" class="password-input" required>
+                <i class="fas fa-eye-slash toggle-password"></i>
+              </div>
+            </div>
+
+            <div class="form-column">
+              <div class="input-group">
+                <input type="email" id="regEmail" name="regEmail" placeholder="Email" required>
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="input-group" id="phoneGroup" style="display: none;">
+                <input type="tel" id="regPhone" name="regPhone" placeholder="Phone Number">
+                <i class="fas fa-phone"></i>
+              </div>
+              <div class="input-group password-group">
+                <input type="password" id="confirmPass" placeholder="Confirm Password" class="password-input" required>
+                <i class="fas fa-eye-slash toggle-password"></i>
+              </div>
+            </div>
+          </div>
+
+          <div id="licenseUploadGroup" style="display: none; position: relative; margin-bottom: 20px; margin-top: 20px;">
+            <label for="regLicense" style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); display: block; transition: all 0.3s ease;">
+              <div style="font-size: 22px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">
+                <i class="fas fa-file-upload"></i>
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">Upload Business License</div>
+              <div style="font-size: 11px; color: rgba(255, 255, 255, 0.6); margin-top: 5px;">(PDF, JPG, PNG - Max 5MB)</div>
+              <div id="regFileName" style="color: #4caf50; margin-top: 8px; font-size: 12px;"></div>
+              <input type="file" id="regLicense" name="regLicense" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
+            </label>
+          </div>
+
+          <button type="submit" class="modal-login-btn">Create Account</button>
+          <div class="register-text">
+            Already have an account? <a href="#" id="backToLogin">Login</a>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div class="hero">
       <div class="left">
-        
         <span class="left1" id="text1">WEDDING EVENTS</span>
         <span class="left2" id="text2">Dont wait</span>
         <span class="left3" id="text3">ani kid manta</span>
         <a class="left4" id="text4" href="/frontend/templates/weddingservices.html">explore now</a>
       </div>
-
       <div class="food" id="food"></div>
     </div>
 
@@ -189,52 +179,38 @@
       <div id="food3"></div>
       <div id="food4"></div>
     </div>
-  </div>
-</div>
-</div>
-    <!-- About Us Section -->
+
     <section class="about-section" id="about">
       <h2 class="section-title">About Us</h2>
       <div class="about-content">
         <div class="about-text">
           <h3>Creating Unforgettable Experiences</h3>
-          <p>At Evenzo, we specialize in transforming ordinary moments into extraordinary memories. With years of experience in event planning, our team of creative professionals is dedicated to making your vision a reality.</p>
-          <div class="stats">
-            
-          </div>
+          <p>At Evenzo, we specialize in transforming ordinary moments into extraordinary memories.</p>
         </div>
       </div>
     </section>
 
-    <!-- Our Speciality Section -->
     <section class="speciality-section">
       <h2 class="section-title">Our Speciality</h2>
       <div class="speciality-grid">
         <div class="speciality-card">
-          <div class="speciality-icon">
-            <i class="fas fa-heart"></i>
-          </div>
+          <div class="speciality-icon"><i class="fas fa-heart"></i></div>
           <h3>Customized Planning</h3>
           <p>Every event is unique. We create personalized plans that reflect your style.</p>
         </div>
         <div class="speciality-card">
-          <div class="speciality-icon">
-            <i class="fas fa-calendar-check"></i>
-          </div>
+          <div class="speciality-icon"><i class="fas fa-calendar-check"></i></div>
           <h3>Stress-Free Experience</h3>
           <p>We handle all details so you can enjoy your special day without worries.</p>
         </div>
         <div class="speciality-card">
-          <div class="speciality-icon">
-            <i class="fas fa-users"></i>
-          </div>
+          <div class="speciality-icon"><i class="fas fa-users"></i></div>
           <h3>Expert Team</h3>
           <p>Our experienced team brings creativity and professionalism to every event.</p>
         </div>
       </div>
     </section>
 
-    <!-- Footer -->
     <footer class="footer">
       <div class="footer-content">
         <div class="footer-section">
@@ -259,24 +235,17 @@
           <ul>
             <li><a href="javascript:void(0)" id="openRegisterFooter">Register as a Event Manager</a></li>
             <li><a href="javascript:void(0)" id="openRegisterAdminFooter">Register as Admin</a></li>
-
           </ul>
         </div>
-      
-        
       </div>
       <div class="footer-bottom">
         <p>&copy; 2024 Evenzo Event Planning. All rights reserved.</p>
       </div>
     </footer>
   </div>
-  
 
-
-  
 <script>
   const food = document.getElementById("food");
-
   const food1 = document.getElementById("food1");
   const food2 = document.getElementById("food2");
   const food3 = document.getElementById("food3");
@@ -289,27 +258,26 @@
 
   const data = [
     {
-      img: "/frontend/static/images/wedd.jpg",
+      img: "{{ url_for('static', filename='images/wedd.jpg') }}",
       text: ["WEDDING EVENTS", "Tailored Weddings", "Creating Your Dream Wedding", "Plan Your Wedding"],
-      link: "/frontend/templates/weddingservices.html"
+      link: "{{ url_for('weddingservices') }}"
     },
     {
-      img: "/frontend/static/images/download.jpg",
+      img: "{{ url_for('static', filename='images/download.jpg') }}",
       text: ["PERSONAL EVENTS", "Fun & Memorable", "Celebrate Every Special Moment", "Book Your Event"],
-      link: "/frontend/templates/Specialservices.html"
+      link: "{{ url_for('specialservices') }}"
     },
     {
-      img: "/frontend/static/images/ce.jpg",
+      img: "{{ url_for('static', filename='images/ce.jpg') }}",
       text: ["CORPORATE EVENT", "Professional & Powerful", "Events That Inspire Success", "Schedule Now"],
-      link: "/frontend/templates/Corporateservices.html"
+      link: "{{ url_for('corporateservices') }}"
     },
     {
-      img: "/frontend/static/images/fest.jpg",
+      img: "{{ url_for('static', filename='images/fest.jpg') }}",
       text: ["PUBLIC EVENTS ", "Grand & Energetic", "Bringing Events to Life", "Explore Now"],
-      link: "/frontend/templates/Publicservices.html"
+      link: "{{ url_for('publicservices') }}"
     }
   ];
-
   function update(index) {
     food.style.backgroundImage = `url('${data[index].img}')`;
     t1.innerText = data[index].text[0];
@@ -324,202 +292,134 @@
   food3.addEventListener("mouseenter", () => update(2));
   food4.addEventListener("mouseenter", () => update(3));
 
-  // Mobile support (tap)
-  food1.addEventListener("click", () => update(0));
-  food2.addEventListener("click", () => update(1));
-  food3.addEventListener("click", () => update(2));
-  food4.addEventListener("click", () => update(3));
-
-
   const loginBtn = document.querySelector('.login-btn');
-const modal = document.getElementById('loginModal');
-const closeModal = document.querySelector('.close-modal');
+  const modal = document.getElementById('loginModal');
+  const closeModal = document.querySelector('.close-modal');
 
-// Open Modal when clicking Login
-loginBtn.addEventListener('click', (e) => {
-  e.preventDefault(); // Prevents page from navigating to login.html
-  modal.style.display = 'flex';
-});
-
-// Close Modal when clicking the X
-closeModal.addEventListener('click', () => {
-  modal.style.display = 'none';
-});
-
-// Close Modal when clicking outside the card
-window.addEventListener('click', (e) => {
-  if (e.target === modal) {
-    modal.style.display = 'none';
-  }
-});
-
-const forgotLink = document.querySelector('.forgot-link');
-const forgotModal = document.getElementById('forgotModal');
-const closeForgot = document.getElementById('closeForgot');
-
-// Open Forgot Modal when clicking 'Forgot Password?'
-forgotLink.addEventListener('click', (e) => {
-  e.preventDefault();
-  modal.style.display = 'none';      // Hide the Login Modal
-  forgotModal.style.display = 'flex'; // Show the Forgot Modal
-});
-
-// Close Forgot Modal when clicking the X
-closeForgot.addEventListener('click', () => {
-  forgotModal.style.display = 'none';
-});
-
-// Close Forgot Modal when clicking outside the box
-window.addEventListener('click', (e) => {
-  if (e.target === forgotModal) {
-    forgotModal.style.display = 'none';
-  }
-});
-
-const registerModal = document.getElementById('registerModal');
-const openRegister = document.querySelector('.register-text a'); // The "Register" link in Login card
-const closeRegister = document.getElementById('closeRegister');
-const backToLogin = document.getElementById('backToLogin');
-
-// 1. Open Register from Login
-openRegister.addEventListener('click', (e) => {
-  e.preventDefault();
-  modal.style.display = 'none'; // Hide Login
-  registerModal.style.display = 'flex'; // Show Register
-});
-
-// 2. Back to Login from Register
-backToLogin.addEventListener('click', (e) => {
-  e.preventDefault();
-  registerModal.style.display = 'none';
-  modal.style.display = 'flex';
-});
-
-// 3. Close Register Modal
-closeRegister.addEventListener('click', () => {
-  registerModal.style.display = 'none';
-});
-
-// 4. Close if clicking outside the card
-window.addEventListener('click', (e) => {
-  if (e.target === registerModal) {
-    registerModal.style.display = 'none';
-  }
-});
-const openRegisterFooter = document.getElementById('openRegisterFooter');
-openRegisterFooter.addEventListener('click', (e) => {
-  e.preventDefault();
-  registerModal.style.display = 'flex';
-});
-const openRegisterAdminFooter = document.getElementById('openRegisterAdminFooter');
-openRegisterAdminFooter.addEventListener('click', (e) => {
-  e.preventDefault();
-  registerModal.style.display = 'flex';
-});
-const registerForm = document.getElementById('registerForm');
-const roleRadios = document.querySelectorAll('input[name="regUserRole"]');
-const businessNameGroup = document.getElementById('businessNameGroup');
-const phoneGroup = document.getElementById('phoneGroup');
-const licenseUploadGroup = document.getElementById('licenseUploadGroup');
-const regLicenseInput = document.getElementById('regLicense');
-const regFileName = document.getElementById('regFileName');
-
-// Handle role selection - show/hide fields and toggle layout
-const formColumnsContainer = document.getElementById('formColumnsContainer');
-
-roleRadios.forEach(radio => {
-  radio.addEventListener('change', (e) => {
-    if (e.target.value === 'eventmanager') {
-      businessNameGroup.style.display = 'block';
-      phoneGroup.style.display = 'block';
-      licenseUploadGroup.style.display = 'block';
-      // Apply two-column layout for event manager
-      formColumnsContainer.classList.add('event-manager-layout');
-    } else {
-      businessNameGroup.style.display = 'none';
-      phoneGroup.style.display = 'none';
-      licenseUploadGroup.style.display = 'none';
-      // Remove two-column layout for regular users
-      formColumnsContainer.classList.remove('event-manager-layout');
-    }
+  loginBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.style.display = 'flex';
   });
-});
 
-// File Upload Handler
-regLicenseInput.addEventListener('change', function (e) {
-  const file = e.target.files[0];
-  if (file) {
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (file.size > maxSize) {
-      alert('File size must be less than 5MB');
-      this.value = '';
-      regFileName.textContent = '';
-    } else {
-      regFileName.textContent = `✓ ${file.name}`;
-    }
-  }
-});
+  closeModal.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
 
-// Click on label to open file input
-document.querySelector('label[for="regLicense"]')?.addEventListener('click', (e) => {
-  if (e.target.tagName !== 'INPUT') {
-    regLicenseInput.click();
-  }
-});
+  window.addEventListener('click', (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
 
-registerForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  
-  const selectedRole = document.querySelector('input[name="regUserRole"]:checked').value;
-  const password = document.getElementById('regPass').value;
-  const confirm = document.getElementById('confirmPass').value;
+  const forgotLink = document.querySelector('.forgot-link');
+  const forgotModal = document.getElementById('forgotModal');
+  const closeForgot = document.getElementById('closeForgot');
 
-  if (password !== confirm) {
-    alert("Passwords do not match! Please try again.");
-    return;
-  }
+  forgotLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.style.display = 'none';
+    forgotModal.style.display = 'flex';
+  });
 
-  if (selectedRole === 'eventmanager') {
-    const fullName = document.getElementById('regFullName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const businessName = document.getElementById('regBusinessName').value.trim();
-    const phone = document.getElementById('regPhone').value.trim();
-    const licenseFile = regLicenseInput.files.length;
+  closeForgot.addEventListener('click', () => {
+    forgotModal.style.display = 'none';
+  });
 
-    if (!fullName || !email || !businessName || !phone || !licenseFile) {
-      alert('Please fill in all fields including business license upload.');
-      return;
-    }
-    alert('Registration submitted successfully! Your account is pending admin approval.');
-  } else {
-    alert('Registration Successful!');
-  }
-  
-  registerForm.reset();
-  regFileName.textContent = '';
-  registerModal.style.display = 'none';
-});
-  // Password visibility toggle functionality
-  document.querySelectorAll('.toggle-password').forEach(icon => {
-    icon.addEventListener('click', function() {
-      const passwordInput = this.closest('.password-group').querySelector('.password-input');
-      const currentType = passwordInput.type;
-      
-      if (currentType === 'password') {
-        passwordInput.type = 'text';
-        this.classList.remove('fa-eye-slash');
-        this.classList.add('fa-eye');
+  const registerModal = document.getElementById('registerModal');
+  const openRegister = document.querySelector('.register-text a');
+  const closeRegister = document.getElementById('closeRegister');
+  const backToLogin = document.getElementById('backToLogin');
+
+  openRegister.addEventListener('click', (e) => {
+    e.preventDefault();
+    modal.style.display = 'none';
+    registerModal.style.display = 'flex';
+  });
+
+  backToLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerModal.style.display = 'none';
+    modal.style.display = 'flex';
+  });
+
+  closeRegister.addEventListener('click', () => {
+    registerModal.style.display = 'none';
+  });
+
+  const openRegisterFooter = document.getElementById('openRegisterFooter');
+  openRegisterFooter.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerModal.style.display = 'flex';
+  });
+
+  const openRegisterAdminFooter = document.getElementById('openRegisterAdminFooter');
+  openRegisterAdminFooter.addEventListener('click', (e) => {
+    e.preventDefault();
+    registerModal.style.display = 'flex';
+  });
+
+  const registerForm = document.getElementById('registerForm');
+  const roleRadios = document.querySelectorAll('input[name="regUserRole"]');
+  const businessNameGroup = document.getElementById('businessNameGroup');
+  const phoneGroup = document.getElementById('phoneGroup');
+  const licenseUploadGroup = document.getElementById('licenseUploadGroup');
+  const regLicenseInput = document.getElementById('regLicense');
+  const regFileName = document.getElementById('regFileName');
+  const formColumnsContainer = document.getElementById('formColumnsContainer');
+
+  roleRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      if (e.target.value === 'eventmanager') {
+        businessNameGroup.style.display = 'block';
+        phoneGroup.style.display = 'block';
+        licenseUploadGroup.style.display = 'block';
+        formColumnsContainer.classList.add('event-manager-layout');
       } else {
-        passwordInput.type = 'password';
-        this.classList.remove('fa-eye');
-        this.classList.add('fa-eye-slash');
+        businessNameGroup.style.display = 'none';
+        phoneGroup.style.display = 'none';
+        licenseUploadGroup.style.display = 'none';
+        formColumnsContainer.classList.remove('event-manager-layout');
       }
     });
   });
 
-  // default load
+  regLicenseInput.addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size must be less than 5MB');
+        this.value = '';
+        regFileName.textContent = '';
+      } else {
+        regFileName.textContent = `✓ ${file.name}`;
+      }
+    }
+  });
+
+  // Password matching logic - allow submission if match
+  registerForm.addEventListener('submit', (e) => {
+    const password = document.getElementById('regPass').value;
+    const confirm = document.getElementById('confirmPass').value;
+
+    if (password !== confirm) {
+      e.preventDefault();
+      alert("Passwords do not match! Please try again.");
+      return;
+    }
+  });
+
+  document.querySelectorAll('.toggle-password').forEach(icon => {
+    icon.addEventListener('click', function() {
+      const passwordInput = this.closest('.password-group').querySelector('.password-input');
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        this.classList.replace('fa-eye-slash', 'fa-eye');
+      } else {
+        passwordInput.type = 'password';
+        this.classList.replace('fa-eye', 'fa-eye-slash');
+      }
+    });
+  });
+
   update(1);
 </script>
-
 </body>
 </html>

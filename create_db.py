@@ -1,18 +1,13 @@
 import sqlite3
-import os
 
 def initialize_evenzo_database():
-    # Define the database name
     db_name = 'database.db'
-    
-    # Connect to SQLite (this creates the file if it doesn't exist)
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
-    print(f"Creating {db_name}...")
+    print(f"Initializing {db_name}...")
 
     # 1. USERS TABLE
-    # Stores basic login info for Users, Admins, and Event Managers
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -20,43 +15,45 @@ def initialize_evenzo_database():
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT CHECK(role IN ('user', 'admin', 'eventmanager')) NOT NULL,
-            is_approved INTEGER DEFAULT 0, -- 0=Pending, 1=Approved by Admin
+            is_approved INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
     # 2. EVENT MANAGER PROFILES
-    # Handles "Service Provider Profile Management"
-    # Stores business name, phone, and the license file path for authenticity
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS manager_profiles (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             business_name TEXT NOT NULL,
             phone TEXT NOT NULL,
-            license_path TEXT, -- Path to uploaded JPEG/PDF license
+            license_path TEXT,
+            profile_pic TEXT, 
             bio TEXT,
             base_price REAL DEFAULT 0.0,
-            rating REAL DEFAULT 0.0, -- For the "Ratings/Reviews system"
+            rating REAL DEFAULT 0.0,
             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
         )
     ''')
 
-    # 3. SERVICES TABLE
-    # Maps managers to the categories in your HTML (Wedding, Corporate, etc.)
+    # 3. SERVICES / PORTFOLIO TABLE
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             manager_id INTEGER NOT NULL,
             category TEXT CHECK(category IN ('Wedding', 'Personal', 'Corporate', 'Public')),
-            service_name TEXT NOT NULL, -- e.g., "Sangeet", "Product Launch"
+            service_name TEXT NOT NULL,
+            service_location TEXT,       
+            services_offered TEXT,       
+            experience_years INTEGER,    
+            pricing TEXT,                
+            images TEXT,                 
             description TEXT,
             FOREIGN KEY (manager_id) REFERENCES users (id) ON DELETE CASCADE
         )
     ''')
 
     # 4. BOOKINGS TABLE
-    # Supports "Booking, Payment & Scheduling" functional requirements
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,8 +61,8 @@ def initialize_evenzo_database():
             manager_id INTEGER NOT NULL,
             service_id INTEGER,
             event_date DATE NOT NULL,
-            status TEXT DEFAULT 'pending', -- pending, confirmed, rejected
-            total_amount REAL,
+            status TEXT DEFAULT 'pending',
+            total_amount REAL DEFAULT 0.0,
             payment_status TEXT DEFAULT 'unpaid',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (client_id) REFERENCES users (id),
@@ -74,17 +71,37 @@ def initialize_evenzo_database():
         )
     ''')
 
-    # Optional: Insert a default Admin account for testing
-    # Password should be hashed in your real app (e.g., using werkzeug.security)
+    # ==========================================
+    # --- SMART UPDATE LOGIC FOR EXISTING DB ---
+    # ==========================================
+    
+    # Check and upgrade manager_profiles table
     try:
-        cursor.execute("INSERT INTO users (full_name, email, password, role, is_approved) VALUES (?, ?, ?, ?, ?)",
-                       ('System Admin', 'admin@evenzo.com', 'admin123', 'admin', 1))
-    except sqlite3.IntegrityError:
-        pass # Admin already exists
+        cursor.execute("ALTER TABLE manager_profiles ADD COLUMN profile_pic TEXT")
+        print("🔧 Upgraded 'manager_profiles' table.")
+    except sqlite3.OperationalError:
+        pass # Column already exists
+
+    # Check and upgrade services table
+    new_service_columns = [
+        "service_location TEXT",
+        "services_offered TEXT",
+        "experience_years INTEGER",
+        "pricing TEXT",
+        "images TEXT"
+    ]
+    
+    print("Checking services table for missing columns...")
+    for column in new_service_columns:
+        try:
+            cursor.execute(f"ALTER TABLE services ADD COLUMN {column}")
+            print(f"🔧 Added missing column: {column.split()[0]}")
+        except sqlite3.OperationalError:
+            pass # Column already exists
 
     conn.commit()
     conn.close()
-    print("✅ Database file 'database.db' has been created successfully!")
+    print("✅ Database is ready and fully up-to-date!")
 
 if __name__ == "__main__":
     initialize_evenzo_database()

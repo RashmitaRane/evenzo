@@ -1,8 +1,12 @@
 body {
     margin: 0;
     padding: 0;
-    background: url(/frontend/static/images/slide\ 5.png);
+    /* Flask automatically maps 'frontend/static' to '/static' */
+    background: url('/static/images/5.png'); 
     color: white;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
 }
 span {
   transition: opacity 0.3s ease;
@@ -24,12 +28,14 @@ span {
 .links li{
   font-size: 13px;
   color: white;
+  font-family: 'Times New Roman', serif;
 }
 .links li a {
   text-decoration: none;
   color: white;
   font-size: 23px;
   font-weight: 700;
+  font-family: 'Times New Roman', serif;
 }
 .nav-1{
   display:flex;
@@ -110,7 +116,7 @@ margin-top: -67px;
 
 }
 #food{
-  background:url(/frontend/static/images/wedd.jpg);
+background: url('/static/images/wedd.jpg');
   width:500px;
   height:500px;
   background-size: cover;
@@ -135,25 +141,25 @@ margin-top: -67px;
   background-repeat: no-repeat;
 }
 #food1{
-  background:url(/frontend/static/images/wedd.jpg);
+  background:url('/static/images/wedd.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food2{
-  background:url(/frontend/static/images/download.jpg);
+  background:url('/static/images/download.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food3{
-  background:url(/frontend/static/images/ce.jpg);
+  background:url('/static/images/ce.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 #food4{
-  background:url(/frontend/static/images/fest.jpg);
+  background:url('/static/images/fest.jpg');
   background-size: cover;
 }
 

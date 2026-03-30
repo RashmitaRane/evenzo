@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio & Services | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; }
+        body { background-color: var(--bg-light); display: flex; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+
+        /* Main Layout */
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .card h2 { color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        /* Forms */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #444; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; }
+        textarea { resize: vertical; min-height: 80px; }
+        .file-upload-box { border: 2px dashed #ccc; padding: 20px; text-align: center; border-radius: 8px; background: #fafafa; cursor: pointer; }
+        
+        /* Currency Input Field */
+        .input-with-icon { position: relative; width: 100%; }
+        .currency-symbol { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #555; font-weight: bold; font-size: 16px; }
+        .input-with-icon input { padding-left: 35px; } 
+        
+        .btn-submit { background: var(--primary); color: white; padding: 12px 30px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; width: 100%; font-size: 16px; }
+        .btn-submit:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        /* Display Grid */
+        .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
+        .service-item { border: 1px solid #eee; border-radius: 12px; padding: 25px; background: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.03); border-top: 5px solid var(--primary); }
+        
+        /* Flexbox Header */
+        .service-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .service-title-area { flex-grow: 1; padding-right: 15px; }
+        .s-category { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .s-title { font-size: 20px; color: var(--primary); font-weight: bold; line-height: 1.3; }
+        
+        /* Action Icons Container */
+        .action-icons { display: flex; gap: 10px; flex-shrink: 0; }
+        .edit-icon { color: var(--primary); font-size: 16px; cursor: pointer; transition: 0.3s; background: #fce4ec; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
+        .edit-icon:hover { background: var(--primary); color: white; transform: scale(1.1); }
+        
+        .delete-icon { color: #d32f2f; font-size: 16px; cursor: pointer; transition: 0.3s; background: #ffebee; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; }
+        .delete-icon:hover { background: #d32f2f; color: white; transform: scale(1.1); }
+
+        .s-detail { font-size: 14px; color: #555; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .s-detail i { color: var(--primary); width: 16px; }
+
+        /* Image Gallery & OVERLAY */
+        .img-gallery { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
+        .img-gallery img { width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; transition: 0.3s; }
+        .img-gallery img:hover { transform: scale(1.05); border-color: var(--primary); }
+        
+        .more-images-wrapper { position: relative; width: 70px; height: 70px; cursor: pointer; border-radius: 8px; overflow: hidden; border: 1px solid #ddd; transition: 0.3s; }
+        .more-images-wrapper:hover { transform: scale(1.05); border-color: var(--primary); }
+        .more-images-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .more-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 650px; max-height: 90vh; overflow-y: auto; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; font-weight: bold; }
+        .close-btn:hover { color: var(--primary); }
+        
+        /* Custom Delete Modal Buttons */
+        .btn-cancel { padding: 10px 20px; border: none; background: #e0e0e0; color: #333; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-cancel:hover { background: #ccc; }
+        .btn-danger { padding: 10px 20px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .btn-danger:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(149, 53, 83, 0.3); }
+
+        /* Image Viewer Modal */
+        #imageViewerModal .modal-content { background: transparent; box-shadow: none; max-width: 900px; text-align: center; padding: 0; overflow: visible;}
+        #fullSizeImage { max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid white; }
+        #imageViewerModal .close-btn { color: white; top: -40px; right: -20px; font-size: 35px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo">Evenzo</div>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <a href="{{ url_for('edit_profile') }}" class="nav-item"><i class="fas fa-user-edit"></i> Edit Profile</a>
+            <a href="{{ url_for('portfolio') }}" class="nav-item active"><i class="fas fa-images"></i> Portfolio</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="card">
+            <h2><i class="fas fa-plus-circle"></i> Add to Portfolio</h2>
+            <form action="{{ url_for('portfolio') }}" method="POST" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Event Category</label>
+                        <select name="category" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Personal">Personal Events</option>
+                            <option value="Corporate">Corporate Events</option>
+                            <option value="Public">Public Events</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio Title</label>
+                        <input type="text" name="service_name" placeholder="e.g., Luxury Beach Wedding" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Service Location</label>
+                        <input type="text" name="service_location" placeholder="e.g., Mumbai, Goa" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Services Handled</label>
+                        <select name="services_offered" required>
+                            <option value="" disabled selected>Select a Service</option>
+                            <option value="Hosting">Hosting</option>
+                            <option value="Decoration">Decoration</option>
+                            <option value="DJ">DJ</option>
+                            <option value="Photography">Photography</option>
+                            <option value="Catering">Catering</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="number" name="experience_years" placeholder="e.g., 5" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pricing Model (Starting Price)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <span class="currency-symbol">₹</span>
+                                <input type="number" name="pricing_amount" placeholder="e.g., 1500" min="0" required>
+                            </div>
+                            <select name="pricing_unit" style="flex: 1;" required>
+                                <option value="per plate (Veg)">per plate (Veg)</option>
+                                <option value="per plate (Non-Veg)">per plate (Non-Veg)</option>
+                                <option value="per day">per day</option>
+                                <option value="per event">per event</option>
+                                <option value="per hour">per hour</option>
+                                <option value="starting package">starting package</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" placeholder="Write a short summary..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Upload Event Images</label>
+                    <div class="file-upload-box">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: var(--primary); margin-bottom: 10px;"></i><br>
+                        <input type="file" name="event_images" accept="image/*" multiple required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-submit">Save to Portfolio</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2><i class="fas fa-briefcase"></i> My Event Portfolio</h2>
+            {% if services %}
+                <div class="services-grid">
+                    {% for service in services %}
+                    <div class="service-item">
+                        
+                        <div class="service-header">
+                            <div class="service-title-area">
+                                <div class="s-category">{{ service.category }}</div>
+                                <div class="s-title">{{ service.service_name }}</div>
+                            </div>
+                            
+                            <div class="action-icons">
+                                <i class="fas fa-edit edit-icon" 
+                                   title="Edit this item" 
+                                   data-id="{{ service.id }}"
+                                   data-category="{{ service.category }}"
+                                   data-title="{{ service.service_name }}"
+                                   data-location="{{ service.service_location }}"
+                                   data-services="{{ service.services_offered }}"
+                                   data-experience="{{ service.experience_years }}"
+                                   data-pricing="{{ service.pricing }}"
+                                   data-description="{{ service.description }}"
+                                   data-images="{{ service.images }}"
+                                   onclick="openEditModal(this)"></i>
+                                   
+                                <form id="deleteForm-{{ service.id }}" action="{{ url_for('delete_portfolio', service_id=service.id) }}" method="POST" style="display: none;"></form>
+                                
+                                <i class="fas fa-trash delete-icon" title="Delete this item" onclick="confirmDelete('{{ service.id }}')"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="s-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
+                        <div class="s-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                        <div class="s-detail"><i class="fas fa-star"></i> <strong>Experience:</strong> {{ service.experience_years }} Years</div>
+                        <div class="s-detail"><i class="fas fa-tag"></i> <strong>Pricing:</strong> ₹{{ service.pricing }}</div>
+                        
+                        <p style="font-size: 14px; color: #666; margin-top: 15px; line-height: 1.6; white-space: pre-wrap;">{{ service.description }}</p>
+                        
+                        {% if service.images %}
+                        {% set imgs = service.images.strip(',').split(',') %}
+                        {% set total_imgs = imgs|length %}
+                        <div class="img-gallery" id="gallery-{{ service.id }}">
+                            {% for img in imgs %}
+                                {% if img %}
+                                    {% if loop.index <= 5 %}
+                                        <img src="{{ url_for('uploaded_file', filename=img) }}" alt="Event Image" onclick="viewImage(this.src)">
+                                    {% elif loop.index == 6 and total_imgs > 6 %}
+                                        <div class="more-images-wrapper" id="more-btn-{{ service.id }}" onclick="expandGallery('{{ service.id }}')">
+                                            <img src="{{ url_for('uploaded_file', filename=img) }}" alt="Event Image">
+                                            <div class="more-overlay">+{{ total_imgs - 5 }}</div>
+                                        </div>
+                                        <img src="{{ url_for('uploaded_file', filename=img) }}" class="hidden-img-{{ service.id }}" style="display: none;" onclick="viewImage(this.src)">
+                                    {% else %}
+                                        <img src="{{ url_for('uploaded_file', filename=img) }}" class="hidden-img-{{ service.id }}" style="display: {{ 'inline-block' if total_imgs <= 6 else 'none' }};" onclick="viewImage(this.src)">
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: #888; font-style: italic; text-align: center; padding: 20px;">You haven't added any events to your portfolio yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <div style="font-size: 50px; color: var(--primary); margin-bottom: 15px;">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <h2 style="color: var(--primary); margin-bottom: 15px;">Delete Portfolio Item?</h2>
+            <p style="color: #666; margin-bottom: 25px;">Are you sure you want to delete this portfolio item? This action cannot be undone.</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button onclick="closeDeleteModal()" class="btn-cancel">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-danger">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeEditModal()">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Edit Portfolio Item</h2>
+            <form id="editForm" method="POST" enctype="multipart/form-data">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Event Category</label>
+                        <select name="category" id="editCategory" required>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Personal">Personal Events</option>
+                            <option value="Corporate">Corporate Events</option>
+                            <option value="Public">Public Events</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Portfolio Title</label>
+                        <input type="text" name="service_name" id="editTitle" required>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Service Location</label>
+                        <input type="text" name="service_location" id="editLocation" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Services Handled</label>
+                        <select name="services_offered" id="editServices" required>
+                            <option value="" disabled>Select a Service</option>
+                            <option value="Hosting">Hosting</option>
+                            <option value="Decoration">Decoration</option>
+                            <option value="DJ">DJ</option>
+                            <option value="Photography">Photography</option>
+                            <option value="Catering">Catering</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Years of Experience</label>
+                        <input type="number" name="experience_years" id="editExperience" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Pricing Model (Starting Price)</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <span class="currency-symbol">₹</span>
+                                <input type="number" name="pricing_amount" id="editPricingAmount" placeholder="e.g., 1500" min="0" required>
+                            </div>
+                            <select name="pricing_unit" id="editPricingUnit" style="flex: 1;" required>
+                                <option value="per plate (Veg)">per plate (Veg)</option>
+                                <option value="per plate (Non-Veg)">per plate (Non-Veg)</option>
+                                <option value="per day">per day</option>
+                                <option value="per event">per event</option>
+                                <option value="per hour">per hour</option>
+                                <option value="starting package">starting package</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="editDescription" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Existing Images <span style="color: #d32f2f; font-weight: normal;">(Check the box to DELETE an image)</span></label>
+                    <div id="editImagePreview" style="display: flex; gap: 15px; flex-wrap: wrap; padding: 15px; background: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+                        </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Add New Images <span style="font-weight: normal; color: #666;">(Will be added alongside existing ones)</span></label>
+                    <div class="file-upload-box">
+                        <i class="fas fa-camera" style="font-size: 24px; color: #999; margin-bottom: 10px;"></i><br>
+                        <input type="file" name="event_images" accept="image/*" multiple>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">Update Portfolio</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="imageViewerModal" class="modal" onclick="closeImageViewer(event)">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeImageViewer(event)">&times;</span>
+            <img id="fullSizeImage" src="" alt="Full Screen Event Image">
+        </div>
+    </div>
+
+    <script>
+        // --- Custom Delete Confirmation Logic ---
+        let serviceIdToDelete = null;
+
+        function confirmDelete(serviceId) {
+            serviceIdToDelete = serviceId;
+            document.getElementById('deleteConfirmModal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            serviceIdToDelete = null;
+        }
+
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (serviceIdToDelete) {
+                document.getElementById('deleteForm-' + serviceIdToDelete).submit();
+            }
+        });
+
+        // --- Gallery Expand Logic ---
+        function expandGallery(serviceId) {
+            document.getElementById('more-btn-' + serviceId).style.display = 'none';
+            const hiddenImgs = document.querySelectorAll('.hidden-img-' + serviceId);
+            hiddenImgs.forEach(img => {
+                img.style.display = 'inline-block';
+            });
+        }
+
+        // --- Edit Modal Logic ---
+        function openEditModal(element) {
+            const id = element.getAttribute('data-id');
+            const imagesStr = element.getAttribute('data-images');
+            
+            document.getElementById('editForm').action = "/edit_portfolio/" + id;
+            
+            document.getElementById('editCategory').value = element.getAttribute('data-category');
+            document.getElementById('editTitle').value = element.getAttribute('data-title');
+            document.getElementById('editLocation').value = element.getAttribute('data-location');
+            document.getElementById('editServices').value = element.getAttribute('data-services');
+            document.getElementById('editExperience').value = element.getAttribute('data-experience');
+            document.getElementById('editDescription').value = element.getAttribute('data-description');
+            
+            // DYNAMIC PRICING SPLIT LOGIC
+            const pricingFull = element.getAttribute('data-pricing');
+            
+            let cleanPriceAmount = pricingFull.replace(/[^0-9.]/g, '');
+            document.getElementById('editPricingAmount').value = cleanPriceAmount;
+            
+            let cleanUnit = pricingFull.replace(/[0-9.]/g, '').trim();
+            if (cleanUnit) {
+                document.getElementById('editPricingUnit').value = cleanUnit;
+            }
+            
+            const previewContainer = document.getElementById('editImagePreview');
+            previewContainer.innerHTML = ''; 
+            
+            if (imagesStr && imagesStr.trim() !== '') {
+                const images = imagesStr.split(',');
+                images.forEach(img => {
+                    if (img.trim() !== '') {
+                        const wrapper = document.createElement('div');
+                        wrapper.style.position = 'relative';
+                        wrapper.style.display = 'inline-block';
+                        
+                        const imgEl = document.createElement('img');
+                        imgEl.src = "/uploads/" + img.trim();
+                        imgEl.style.width = '80px';
+                        imgEl.style.height = '80px';
+                        imgEl.style.objectFit = 'cover';
+                        imgEl.style.borderRadius = '5px';
+                        imgEl.style.border = '1px solid #ddd';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'delete_images';
+                        checkbox.value = img.trim();
+                        checkbox.title = 'Check to delete this image';
+                        checkbox.style.position = 'absolute';
+                        checkbox.style.top = '-5px';
+                        checkbox.style.right = '-5px';
+                        checkbox.style.cursor = 'pointer';
+                        checkbox.style.transform = 'scale(1.2)';
+
+                        wrapper.appendChild(imgEl);
+                        wrapper.appendChild(checkbox);
+                        previewContainer.appendChild(wrapper);
+                    }
+                });
+            } else {
+                previewContainer.innerHTML = '<span style="color:#888; font-size: 13px;">No existing images.</span>';
+            }
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // --- Image Viewer Logic ---
+        function viewImage(src) {
+            document.getElementById('fullSizeImage').src = src;
+            document.getElementById('imageViewerModal').style.display = 'flex';
+        }
+
+        function closeImageViewer(e) {
+            if (e.target.id === 'imageViewerModal' || e.target.classList.contains('close-btn')) {
+                document.getElementById('imageViewerModal').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

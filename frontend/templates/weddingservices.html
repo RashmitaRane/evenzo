@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wedding Services | Event Plus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/frontend/static/styles.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
     <style>
         * {
             margin: 0;
@@ -335,27 +335,23 @@
     </style>
 </head>
 <body>
-    <!-- Navigation Bar -->
-   
     <div class="navbar">
       <div class="logo">Evenzo</div>
-      
       <ul class="links">
-        <li><a href="index.html" style="color: white; text-decoration: none; font-family: 'Times New Roman';">Home</a></li>
+        <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Home</a></li>
         <li class="dropdown">
-          <a href="javascript:void(0)" class="dropbtn" style="font-family: 'Times New Roman';">Services</a>
+          <a href="javascript:void(0)" class="dropbtn">Services</a>
           <ul class="dropdown-content">
-            <li><a href="weddingservices.html" style="font-family: 'Times New Roman';">WEDDING EVENTS</a></li>
-            <li><a href="Specialservices.html" style="font-family: 'Times New Roman';">PERSONAL EVENTS</a></li>
-            <li><a href="Corporateservices.html" style="font-family: 'Times New Roman';">CORPORATE EVENT</a></li>
-            <li><a href="publicservices.html" style="font-family: 'Times New Roman';">PUBLIC EVENTS</a></li>
+            <li><a href="{{ url_for('weddingservices') }}">WEDDING EVENTS</a></li>
+            <li><a href="{{ url_for('specialservices') }}">PERSONAL EVENTS</a></li>
+            <li><a href="{{ url_for('corporateservices') }}">CORPORATE EVENT</a></li>
+            <li><a href="{{ url_for('publicservices') }}">PUBLIC EVENTS</a></li>
           </ul>
+          <li><a href="{{ url_for('index') }}#about">About</a></li>
         </li>
-        <li style="font-family: 'Times New Roman';">About</li>
-        
       </ul>
     </div>
-
+       
     <!-- Page Title -->
     <div class="container">
         <div class="page-title">
@@ -440,7 +436,7 @@
                 <!-- Pre-Wedding Functions -->
                 <div class="service-card">
                     <div class="service-image">
-                        <img src="/frontend/static/images/prewedding.jpg" alt="Pre-Wedding Functions">
+                        <img src="{{ url_for('static', filename='images/prewedding.jpg') }}" alt="Pre-Wedding Functions">
                     </div>
                     <div class="service-content">
                         <h3 class="service-name">

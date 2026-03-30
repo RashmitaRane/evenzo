@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; }
+        body { background-color: var(--bg-light); display: flex; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        .content-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 700px; margin: 0 auto; }
+        .profile-row { margin-bottom: 12px; }
+        .profile-row label { display: inline-block; width: 150px; font-weight: 600; }
+        .profile-row span { font-weight: 500; }
+        .btn-edit { margin-top: 20px; display: inline-flex; align-items: center; justify-content: center; background: var(--primary); color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="logo" style="font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center;">Evenzo</div>
+        <nav>
+            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{{ url_for('profile') }}" class="nav-item active"><i class="fas fa-user"></i> Profile</a>
+            <a href="{{ url_for('portfolio') }}" class="nav-item"><i class="fas fa-images"></i> Portfolio</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="content-card">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Profile</h2>
+            <div class="profile-row"><label>Full Name:</label> <span>{{ user.full_name }}</span></div>
+            <div class="profile-row"><label>Email:</label> <span>{{ user.email }}</span></div>
+            <div class="profile-row"><label>Phone:</label> <span>{{ user.phone }}</span></div>
+            <div class="profile-row"><label>Business Name:</label> <span>{{ user.business_name }}</span></div>
+            <a href="{{ url_for('edit_profile') }}" class="btn-edit"><i class="fas fa-user-edit"></i>&nbsp;Edit Profile</a>
+        </div>
+    </div>
+</body>
+</html>
