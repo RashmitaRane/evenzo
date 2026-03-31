@@ -36,7 +36,7 @@ def initialize_evenzo_database():
         )
     ''')
 
-    # 3. SERVICES / PORTFOLIO TABLE
+    # 3. SERVICES / PORTFOLIO TABLE (Updated for 3 Packages)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,15 +46,24 @@ def initialize_evenzo_database():
             service_location TEXT,       
             services_offered TEXT,       
             experience_years INTEGER,    
-            pricing TEXT,                
+            pricing TEXT,  -- We will keep this as the "Starting At" price              
             images TEXT,                 
             description TEXT,
             unavailable_dates TEXT,
+            pkg_basic_name TEXT DEFAULT 'Basic (Silver)',
+            pkg_basic_price REAL DEFAULT 0.0,
+            pkg_basic_desc TEXT,
+            pkg_premium_name TEXT DEFAULT 'Premium (Gold)',
+            pkg_premium_price REAL DEFAULT 0.0,
+            pkg_premium_desc TEXT,
+            pkg_luxury_name TEXT DEFAULT 'Luxury (Platinum)',
+            pkg_luxury_price REAL DEFAULT 0.0,
+            pkg_luxury_desc TEXT,
             FOREIGN KEY (manager_id) REFERENCES users (id) ON DELETE CASCADE
         )
     ''')
 
-    # 4. BOOKINGS TABLE
+    # 4. BOOKINGS TABLE (Updated to store selected package)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS bookings (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,6 +74,9 @@ def initialize_evenzo_database():
             status TEXT DEFAULT 'pending',
             total_amount REAL DEFAULT 0.0,
             payment_status TEXT DEFAULT 'unpaid',
+            client_phone TEXT,
+            client_message TEXT,
+            selected_package TEXT, -- 🟢 NEW: Stores which tier they chose
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (client_id) REFERENCES users (id),
             FOREIGN KEY (manager_id) REFERENCES users (id),
@@ -72,33 +84,35 @@ def initialize_evenzo_database():
         )
     ''')
 
-    # --- SMART UPDATE LOGIC ---
-    try:
-        cursor.execute("ALTER TABLE manager_profiles ADD COLUMN profile_pic TEXT")
-        print("🔧 Upgraded 'manager_profiles' table.")
-    except sqlite3.OperationalError:
-        pass
-
+    # --- SMART UPDATE LOGIC (Safely adds new columns to existing DB) ---
     new_service_columns = [
-        "service_location TEXT",
-        "services_offered TEXT",
-        "experience_years INTEGER",
-        "pricing TEXT",
-        "images TEXT",
-        "unavailable_dates TEXT" # 🟢 Added Availability Column
+        "pkg_basic_name TEXT DEFAULT 'Basic (Silver)'",
+        "pkg_basic_price REAL DEFAULT 0.0",
+        "pkg_basic_desc TEXT",
+        "pkg_premium_name TEXT DEFAULT 'Premium (Gold)'",
+        "pkg_premium_price REAL DEFAULT 0.0",
+        "pkg_premium_desc TEXT",
+        "pkg_luxury_name TEXT DEFAULT 'Luxury (Platinum)'",
+        "pkg_luxury_price REAL DEFAULT 0.0",
+        "pkg_luxury_desc TEXT"
     ]
-    
-    print("Checking services table for missing columns...")
+    print("Checking services table for package columns...")
     for column in new_service_columns:
         try:
             cursor.execute(f"ALTER TABLE services ADD COLUMN {column}")
-            print(f"🔧 Added missing column: {column.split()[0]}")
+            print(f"🔧 Added column: {column.split()[0]}")
         except sqlite3.OperationalError:
             pass
 
+    try:
+        cursor.execute("ALTER TABLE bookings ADD COLUMN selected_package TEXT")
+        print("🔧 Added 'selected_package' to bookings.")
+    except sqlite3.OperationalError:
+        pass
+
     conn.commit()
     conn.close()
-    print("✅ Database is ready and fully up-to-date!")
+    print("✅ Database is ready for the Tiered Package System!")
 
 if __name__ == "__main__":
     initialize_evenzo_database()

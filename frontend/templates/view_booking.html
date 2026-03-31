@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Details | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; --text-dark: #333; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; } 
+        
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; left: 0; top: 0; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+        .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+
+        .back-btn { color: #666; text-decoration: none; font-size: 16px; display: inline-block; margin-bottom: 20px; transition: 0.2s; font-weight: bold; }
+        .back-btn:hover { color: var(--primary); transform: translateX(-5px); }
+
+        .header-title { color: var(--primary); margin-bottom: 20px; font-size: 28px; }
+
+        .details-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; align-items: start; }
+        
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card-header { font-size: 18px; font-weight: bold; color: var(--primary); margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+        
+        .info-row { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .info-label { font-size: 13px; color: #888; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .info-value { font-size: 16px; color: #333; font-weight: 500; }
+        .info-value a { color: var(--primary); text-decoration: none; }
+
+        .message-box { background: #f9f9f9; border-left: 4px solid var(--primary); padding: 20px; border-radius: 0 8px 8px 0; font-style: italic; color: #555; line-height: 1.6; margin-top: 10px; }
+
+        .portfolio-preview { text-align: center; }
+        .portfolio-preview img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
+        .portfolio-price { font-size: 22px; color: var(--primary); font-weight: bold; margin-top: 10px; }
+        
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; text-transform: uppercase; display: inline-block; }
+        .status-pending { background: #fff3e0; color: #ef6c00; }
+        .status-confirmed { background: #e8f5e9; color: #2e7d32; }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">Evenzo</div>
+        <nav class="nav-menu">
+            <a href="{{ url_for('dashboard') }}" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-calendar-check"></i> Bookings</a>
+            <a href="{{ url_for('edit_profile') }}" class="nav-item"><i class="fas fa-user-edit"></i> Edit Profile</a>
+            <a href="{{ url_for('portfolio') }}" class="nav-item"><i class="fas fa-images"></i> Portfolio</a>
+        </nav>
+        <div class="logout-container">
+            <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <a href="{{ url_for('dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        
+        <h1 class="header-title">Booking Request #EVZ-{{ booking.id }}</h1>
+
+        <div class="details-grid">
+            
+            <div class="card">
+                <div class="card-header"><i class="fas fa-user-circle"></i> Client Information</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
+                    <div class="info-row">
+                        <div class="info-label">Client Name</div>
+                        <div class="info-value">{{ booking.client_name }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Requested Dates</div>
+                        <div class="info-value" style="color: var(--primary); font-weight: bold;">{{ booking.event_date }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Phone Number</div>
+                        <div class="info-value"><a href="tel:{{ booking.client_phone }}"><i class="fas fa-phone-alt"></i> {{ booking.client_phone }}</a></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">Email Address</div>
+                        <div class="info-value"><a href="mailto:{{ booking.client_email }}"><i class="fas fa-envelope"></i> {{ booking.client_email }}</a></div>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label"><i class="fas fa-comment-dots"></i> Message / Event Details</div>
+                    <div class="message-box">
+                        {{ booking.client_message if booking.client_message else "The client did not provide any additional details." }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card portfolio-preview">
+                <div class="card-header" style="justify-content: center;"><i class="fas fa-briefcase"></i> Service Requested</div>
+                
+                {% if booking.service_name %}
+                    {% set raw_imgs = booking.images.split(',') if booking.images else [] %}
+                    {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+                    
+                    {% if clean_imgs|length > 0 %}
+                        <img src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" alt="Service Image">
+                    {% else %}
+                        <div style="width: 100%; height: 200px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #aaa; margin-bottom: 15px;">No Image</div>
+                    {% endif %}
+
+                    <h3 style="color: #333; font-size: 20px;">{{ booking.service_name }}</h3>
+                    <p style="color: #888; font-size: 14px; margin-top: 5px;">{{ booking.category }}</p>
+                    
+                    <div class="portfolio-price">₹ {{ booking.pricing }}</div>
+                {% else %}
+                    <h3 style="color: #666; margin: 40px 0;">Custom Package Request</h3>
+                    <p style="color: #888;">The client has requested a custom service not tied to a specific portfolio item.</p>
+                {% endif %}
+
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <div class="info-label" style="margin-bottom: 10px;">Current Status</div>
+                    <span class="status-badge status-{{ booking.status|lower }}">{{ booking.status }}</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
