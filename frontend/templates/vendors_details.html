@@ -97,6 +97,15 @@
         .date-warning { color: #d32f2f; font-size: 12px; font-weight: bold; margin-top: 5px; display: none; }
 
         #contactNumberDisplay { display: none; text-align: center; font-size: 18px; font-weight: bold; color: var(--primary); margin-top: -10px; margin-bottom: 20px; border: 1px dashed var(--primary); padding: 10px; border-radius: 8px; background: #fdf5f7; }
+
+        /* Review Styles Added */
+        .reviews-section { margin-top: 40px; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .add-review-box { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fdf5f7; }
+        .rating-selection { display: flex; gap: 15px; margin-bottom: 15px; }
+        .rating-selection label { cursor: pointer; font-weight: bold; }
+        .rating-selection input { accent-color: var(--primary); }
+        .review-card { border-bottom: 1px solid #eee; padding: 15px 0; }
+        .review-card:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -142,14 +151,64 @@
                         <div class="v-title">{{ service.service_name }}</div>
                         <div class="v-business"><i class="fas fa-store" style="color: var(--primary);"></i> {{ service.business_name }}</div>
                     </div>
+                    
                     <div class="v-grid">
                         <div class="v-detail"><i class="fas fa-user-tie"></i> <strong>Handler:</strong> {{ service.manager_name }}</div>
                         <div class="v-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                        <div class="v-detail"><i class="fas fa-gem"></i> <strong>Package:</strong> {{ service.package_tier }}</div>
                         <div class="v-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
                         <div class="v-detail"><i class="fas fa-star"></i> <strong>Experience:</strong> {{ service.experience_years }} Years</div>
                     </div>
                     <div class="desc-title">About this Package</div>
                     <div class="v-description">{{ service.description }}</div>
+                </div>
+
+                <div class="reviews-section">
+                    <h2 style="color: var(--primary); margin-bottom: 20px; font-family: 'Sanchez', serif;">Customer Reviews</h2>
+
+                    {% if can_review %}
+                    <div class="add-review-box">
+                        <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--primary);">Rate your experience</h3>
+                        <form action="/submit_review" method="POST">
+                            <input type="hidden" name="manager_id" value="{{ service.manager_id }}">
+                            <input type="hidden" name="service_id" value="{{ service.id }}">
+                            
+                            <div class="rating-selection">
+                                {% for i in range(1, 6) %}
+                                <label><input type="radio" name="rating" value="{{ i }}" required> {{ i }} ⭐</label>
+                                {% endfor %}
+                            </div>
+                            
+                            <textarea name="review_text" placeholder="Tell us about your event..." required 
+                                style="width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; font-family: inherit;"></textarea>
+                            
+                            <button type="submit" class="submit-btn" style="width: auto; padding: 10px 30px; margin-top: 0;">Post Review</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <div class="reviews-display">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #fdf5f7; padding-bottom: 10px;">
+                            <p style="font-weight: bold; font-size: 18px;">Average Rating: <span style="color: #f39c12;">⭐ {{ service.rating if service.rating else '0.0' }}</span></p>
+                            <select id="reviewSorter" onchange="sortReviews()" style="padding: 8px; border-radius: 6px; border: 1px solid #ccc; font-family: inherit; outline: none;">
+                                <option value="all">All Reviews</option>
+                                <option value="5">5 Stars</option>
+                                <option value="4">4+ Stars</option>
+                            </select>
+                        </div>
+
+                        <div id="reviewsList">
+                            {% for review in reviews %}
+                            <div class="review-card" data-rating="{{ review.rating }}">
+                                <p style="font-weight: bold; margin-bottom: 5px;">{{ review.client_name }} <span style="color: #f39c12; margin-left: 10px;">{{ review.rating }} ⭐</span></p>
+                                <p style="color: #555; font-style: italic;">"{{ review.review_text }}"</p>
+                                <small style="color: #999;">Posted on: {{ review.created_at.split(' ')[0] }}</small>
+                            </div>
+                            {% else %}
+                            <p style="text-align: center; color: #999; padding: 20px;">No confirmed reviews yet.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -236,55 +295,30 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         // --- 1. DYNAMIC PRICING CALCULATION & LABEL LOGIC ---
-        // Grab the raw text like "1500 per plate (Veg)" 
         const rawPricingStr = "{{ service.pricing if service.pricing else '0' }}";
-        
-        // Extract only the numbers (e.g., 1500)
         const numericPart = rawPricingStr.replace(/[^0-9.]/g, ''); 
         const basePrice = parseFloat(numericPart) || 0;
-
-        // Extract the text part / unit (e.g., "per plate (veg)")
         const unitPart = rawPricingStr.replace(/[0-9.]/g, '').trim().toLowerCase();
 
         document.addEventListener("DOMContentLoaded", function() {
             const qtyLabel = document.getElementById('qtyLabel');
             const unitDisplay = document.getElementById('pricingUnitDisplay');
-            
-            // Clean up the display text on the UI
-            if(unitPart) {
-                unitDisplay.innerText = unitPart;
-            }
+            if(unitPart) { unitDisplay.innerText = unitPart; }
 
-            // 🟢 INTELLIGENT LOGIC: Change the textbox label based on the unit!
-            if (unitPart.includes('plate')) {
-                qtyLabel.innerText = "Enter Number of Plates";
-            } else if (unitPart.includes('day')) {
-                qtyLabel.innerText = "Enter Number of Days";
-            } else if (unitPart.includes('hour')) {
-                qtyLabel.innerText = "Enter Number of Hours";
-            } else if (unitPart.includes('event') || unitPart.includes('package')) {
-                qtyLabel.innerText = "Number of Events / Packages";
-            } else {
-                qtyLabel.innerText = "Enter Quantity";
-            }
-            
-            // Run the initial calculation
+            if (unitPart.includes('plate')) { qtyLabel.innerText = "Enter Number of Plates"; } 
+            else if (unitPart.includes('day')) { qtyLabel.innerText = "Enter Number of Days"; } 
+            else if (unitPart.includes('hour')) { qtyLabel.innerText = "Enter Number of Hours"; } 
+            else if (unitPart.includes('event') || unitPart.includes('package')) { qtyLabel.innerText = "Number of Events / Packages"; } 
+            else { qtyLabel.innerText = "Enter Quantity"; }
             calculateTotal();
         });
 
         function calculateTotal() {
             let qty = parseInt(document.getElementById('qtyInput').value) || 1;
-            if (qty < 1) qty = 1; // Prevents entering negative numbers or zero
-            
+            if (qty < 1) qty = 1; 
             const total = basePrice * qty;
-            
-            // Format number with Indian commas (e.g. 1,50,000)
             const formattedTotal = total.toLocaleString('en-IN', { maximumFractionDigits: 2 });
-            
-            // Update UI Display
             document.getElementById('totalPriceDisplay').innerText = '₹ ' + formattedTotal;
-            
-            // Update hidden form field so the backend can save it
             document.getElementById('hiddenTotalAmount').value = total;
         }
 
@@ -296,12 +330,10 @@
             {% endfor %}
         ];
         let currentIdx = 0;
-        
         function changeImage(direction) {
             currentIdx += direction;
             if (currentIdx < 0) currentIdx = images.length - 1;
             if (currentIdx >= images.length) currentIdx = 0;
-            
             document.getElementById('mainCarouselImg').src = images[currentIdx];
             document.getElementById('imgCounter').innerText = currentIdx + 1;
         }
@@ -310,48 +342,34 @@
         // --- 3. VIEW CONTACT TOGGLE ---
         function toggleContact() {
             const display = document.getElementById('contactNumberDisplay');
-            if (display.style.display === 'none' || display.style.display === '') {
-                display.style.display = 'block';
-            } else {
-                display.style.display = 'none';
-            }
+            display.style.display = (display.style.display === 'none' || display.style.display === '') ? 'block' : 'none';
         }
 
-        // --- 4. FLATPICKR CALENDAR LOGIC (MULTI-DATE SELECTION) ---
+        // --- 4. REVIEW SORTING LOGIC ---
+        function sortReviews() {
+            const filter = document.getElementById('reviewSorter').value;
+            const cards = document.querySelectorAll('.review-card');
+            cards.forEach(card => {
+                const rating = parseInt(card.getAttribute('data-rating'));
+                if (filter === 'all') { card.style.display = 'block'; } 
+                else if (filter === '5') { card.style.display = (rating === 5) ? 'block' : 'none'; } 
+                else if (filter === '4') { card.style.display = (rating >= 4) ? 'block' : 'none'; }
+            });
+        }
+
+        // --- 5. FLATPICKR CALENDAR LOGIC ---
         const datesStr = document.getElementById('dateDataHolder').getAttribute('data-booked');
         const bookedDatesArray = datesStr ? datesStr.split(',').map(d => d.trim()) : [];
-
         flatpickr("#bookingDateInput", {
-            mode: "multiple",
-            dateFormat: "Y-m-d",
-            minDate: "today",
-            disable: bookedDatesArray, 
+            mode: "multiple", dateFormat: "Y-m-d", minDate: "today", disable: bookedDatesArray, 
             onChange: function(selectedDates, dateStr, instance) {
-                let hasConflict = false;
-                const selectedArr = dateStr.split(',').map(d => d.trim());
-                for (let d of selectedArr) {
-                    if (bookedDatesArray.includes(d)) {
-                        hasConflict = true;
-                        break;
-                    }
-                }
-                
-                if (hasConflict) {
-                    document.getElementById('dateWarning').style.display = 'block';
-                    document.getElementById('submitBookingBtn').disabled = true;
-                } else {
-                    document.getElementById('dateWarning').style.display = 'none';
-                    document.getElementById('submitBookingBtn').disabled = false;
-                }
+                let hasConflict = dateStr.split(',').map(d => d.trim()).some(d => bookedDatesArray.includes(d));
+                document.getElementById('dateWarning').style.display = hasConflict ? 'block' : 'none';
+                document.getElementById('submitBookingBtn').disabled = hasConflict;
             },
             onDayCreate: function(dObj, dStr, fp, dayElem) {
-                const dateStrFormatted = dayElem.dateObj.getFullYear() + "-" + 
-                    String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + "-" + 
-                    String(dayElem.dateObj.getDate()).padStart(2, '0');
-
-                if (bookedDatesArray.includes(dateStrFormatted)) {
-                    dayElem.classList.add("booked-date");
-                }
+                const dateStrFormatted = dayElem.dateObj.getFullYear() + "-" + String(dayElem.dateObj.getMonth() + 1).padStart(2, '0') + "-" + String(dayElem.dateObj.getDate()).padStart(2, '0');
+                if (bookedDatesArray.includes(dateStrFormatted)) { dayElem.classList.add("booked-date"); }
             }
         });
     </script>

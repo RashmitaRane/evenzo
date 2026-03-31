@@ -9,6 +9,19 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
 </head>
 <body>
+<div class="flash-messages" id="flashContainer" style="position: fixed; top: 80px; right: 20px; z-index: 9999; width: auto; max-width: 400px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert flash-alert" style="padding: 15px 20px; border-radius: 8px; font-size: 16px; font-family: 'Sanchez', Georgia, serif; font-weight: bold; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); background-color: #ffffff; color: #333; border-left: 5px solid #953553; margin-bottom: 10px; transition: opacity 0.5s ease, transform 0.5s ease;">
+                    <i class="fas fa-info-circle" style="color: #953553; font-size: 22px;"></i> 
+                    <span style="letter-spacing: 0.5px;">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+  </div>
+
   <div class="main">
     <div class="navbar">
       <div class="logo">Evenzo</div>
@@ -394,7 +407,6 @@
     }
   });
 
-  // Password matching logic - allow submission if match
   registerForm.addEventListener('submit', (e) => {
     const password = document.getElementById('regPass').value;
     const confirm = document.getElementById('confirmPass').value;
@@ -420,6 +432,20 @@
   });
 
   update(1);
+
+  // NEW: Flash Message Auto-Hide Logic
+  document.addEventListener('DOMContentLoaded', function() {
+    const alerts = document.querySelectorAll('.flash-alert');
+    if(alerts.length > 0) {
+        setTimeout(() => {
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px) translateX(-50%)';
+                setTimeout(() => alert.remove(), 500); 
+            });
+        }, 4000); 
+    }
+  });
 </script>
 </body>
 </html>

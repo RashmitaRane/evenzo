@@ -166,6 +166,16 @@
                 </div>
                 
                 <div class="form-group">
+                    <label>Package Tier</label>
+                    <select name="package_tier" required>
+                        <option value="" disabled selected>Select a Package</option>
+                        <option value="Standard">Standard</option>
+                        <option value="Premium">Premium</option>
+                        <option value="Luxury">Luxury</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label>Pricing Model (Starting Price)</label>
                     <div style="display: flex; gap: 10px;">
                         <div class="input-with-icon" style="flex: 1;">
@@ -228,6 +238,7 @@
                                    data-location="{{ service.service_location }}"
                                    data-services="{{ service.services_offered }}"
                                    data-experience="{{ service.experience_years }}"
+                                   data-package="{{ service.package_tier }}"
                                    data-pricing="{{ service.pricing }}"
                                    data-description="{{ service.description }}"
                                    data-images="{{ service.images }}"
@@ -242,6 +253,7 @@
                         
                         <div class="s-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
                         <div class="s-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                        <div class="s-detail"><i class="fas fa-gem"></i> <strong>Package:</strong> {{ service.package_tier }}</div>
                         <div class="s-detail"><i class="fas fa-star"></i> <strong>Experience:</strong> {{ service.experience_years }} Years</div>
                         <div class="s-detail"><i class="fas fa-tag"></i> <strong>Pricing:</strong> ₹{{ service.pricing }}</div>
                         
@@ -344,6 +356,16 @@
                         <label>Years of Experience</label>
                         <input type="number" name="experience_years" id="editExperience" min="0" required>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Package Tier</label>
+                    <select name="package_tier" id="editPackage" required>
+                        <option value="" disabled>Select a Package</option>
+                        <option value="Standard">Standard</option>
+                        <option value="Premium">Premium</option>
+                        <option value="Luxury">Luxury</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -507,6 +529,7 @@
             document.getElementById('editLocation').value = element.getAttribute('data-location');
             document.getElementById('editServices').value = element.getAttribute('data-services');
             document.getElementById('editExperience').value = element.getAttribute('data-experience');
+            document.getElementById('editPackage').value = element.getAttribute('data-package') || 'Standard';
             document.getElementById('editDescription').value = element.getAttribute('data-description');
             
             // LOAD DATES INTO FLATPICKR EDIT FIELD

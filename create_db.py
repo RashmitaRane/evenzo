@@ -84,6 +84,20 @@ def initialize_evenzo_database():
         )
     ''')
 
+    # 5. REVIEWS TABLE (🟢 NEWLY ADDED)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            client_id INTEGER NOT NULL,
+            manager_id INTEGER NOT NULL,
+            rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+            review_text TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (client_id) REFERENCES users (id),
+            FOREIGN KEY (manager_id) REFERENCES users (id)
+        )
+    ''')
+
     # --- SMART UPDATE LOGIC (Safely adds new columns to existing DB) ---
     new_service_columns = [
         "pkg_basic_name TEXT DEFAULT 'Basic (Silver)'",
@@ -96,6 +110,7 @@ def initialize_evenzo_database():
         "pkg_luxury_price REAL DEFAULT 0.0",
         "pkg_luxury_desc TEXT"
     ]
+    
     print("Checking services table for package columns...")
     for column in new_service_columns:
         try:
@@ -112,7 +127,7 @@ def initialize_evenzo_database():
 
     conn.commit()
     conn.close()
-    print("✅ Database is ready for the Tiered Package System!")
+    print("✅ Database is ready with Review and Tiered Package systems!")
 
 if __name__ == "__main__":
     initialize_evenzo_database()

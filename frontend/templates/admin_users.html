@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users | Evenzo Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #953553;
+            --secondary: #A95C68;
+            --bg-light: #f8f9fa;
+            --white: #ffffff;
+            --text-dark: #333;
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-light); display: flex; }
+
+        /* Sidebar Design */
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        .nav-menu { list-style: none; flex-grow: 1; }
+        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+
+        /* Main Content */
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 30px; position: relative;}
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .welcome-text h1 { color: var(--primary); font-size: 24px; }
+
+        /* Table Styling */
+        .content-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        .content-card h2 { margin-bottom: 20px; color: var(--primary); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; background-color: #fce4ec; color: var(--primary); font-size: 14px; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .pending { background: #fff3e0; color: #ef6c00; }
+        .approved { background: #e8f5e9; color: #2e7d32; }
+
+        /* Action Buttons */
+        .btn-action { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; margin-right: 5px; transition: 0.2s; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block; }
+        .btn-reject { background: var(--primary); color: white; }
+        .btn-reject:hover { background: var(--secondary); box-shadow: 0 2px 8px rgba(149, 53, 83, 0.3); }
+        .btn-cancel { background: #eee; color: #333; }
+        .btn-cancel:hover { background: #ddd; }
+
+        /* Flash Messages */
+        .flash-messages { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000; width: 100%; max-width: 500px;}
+        .alert { padding: 15px 20px; border-radius: 8px; font-size: 15px; font-weight: bold; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        .alert-success { background-color: #e8f5e9; color: #2e7d32; border-left: 5px solid #2e7d32; }
+
+        /* Custom Modal Styling */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 40px 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal-icon { font-size: 55px; margin-bottom: 15px; }
+        .modal-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
+        .modal-text { color: #666; font-size: 15px; margin-bottom: 25px; line-height: 1.5; }
+        .modal-btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
+        .btn-confirm-reject { background: #d32f2f; color: white; }
+        .btn-confirm-reject:hover { background: #b71c1c; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo">Evenzo Admin</div>
+        <nav class="nav-menu">
+            <a href="{{ url_for('admin_dashboard') }}" class="nav-item"><i class="fas fa-user-shield"></i> Dashboard</a>
+            <a href="{{ url_for('admin_users') }}" class="nav-item active"><i class="fas fa-users"></i> Users</a>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+
+    <div class="main-content">
+        <div class="flash-messages" id="flashContainer">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-success flash-alert">
+                            <i class="fas fa-check-circle"></i> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <header>
+            <div class="welcome-text">
+                <h1>User Management</h1>
+                <p>View and manage all registered users and event handlers.</p>
+            </div>
+            <div class="user-profile">
+                <span style="font-weight: 600; color: var(--primary);">Welcome, {{ session.user_name }}</span>
+            </div>
+        </header>
+
+        <div class="content-card">
+            <h2>User & Event Handler Management</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; gap: 15px; flex-wrap: wrap;">
+                <div>
+                    <label style="font-weight: 600; font-size: 14px; margin-right: 10px; color: #555;">Filter Role:</label>
+                    <select id="roleFilter" onchange="filterAndSortUsers()" style="padding: 8px 12px; border-radius: 6px; border: 1px solid #ccc; outline: none;">
+                        <option value="all">All Accounts</option>
+                        <option value="user">Regular Users</option>
+                        <option value="eventmanager">Event Handlers</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-weight: 600; font-size: 14px; margin-right: 10px; color: #555;">Sort by Name:</label>
+                    <button onclick="toggleSort()" id="sortBtn" class="btn-cancel" style="padding: 8px 15px; border-radius: 6px; cursor: pointer;">A-Z ⬇️</button>
+                </div>
+            </div>
+
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    {% for user in all_users %}
+                    <tr class="user-row" data-role="{{ user.role }}" data-name="{{ user.full_name | lower }}">
+                        <td><strong>{{ user.full_name }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="status-badge" style="{% if user.role == 'eventmanager' %}background: #f3e5f5; color: #7b1fa2;{% else %}background: #e3f2fd; color: #1565c0;{% endif %}">
+                                {{ 'Event Handler' if user.role == 'eventmanager' else 'User' }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if user.role == 'eventmanager' and user.is_approved == 0 %}
+                                <span class="status-badge pending">Pending</span>
+                            {% else %}
+                                <span class="status-badge approved">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn-action btn-reject" onclick="openDeleteModal('{{ user.id }}', '{{ user.full_name }}')">
+                                <i class="fas fa-trash-alt"></i> Remove
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999; padding: 30px;">No users found in the system.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <div id="modalIcon" class="modal-icon"><i class="fas fa-user-slash" style="color: #d32f2f;"></i></div>
+            <div id="modalTitle" class="modal-title" style="color: #d32f2f;">Remove User Account?</div>
+            <div id="modalText" class="modal-text">Are you sure?</div>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+                <button type="button" onclick="closeAdminModal()" class="modal-btn btn-cancel">Cancel</button>
+                <form id="actionForm" method="GET" style="margin: 0;">
+                    <button type="submit" id="confirmActionBtn" class="modal-btn btn-confirm-reject">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Flash Message Auto-Hide ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.flash-alert');
+            if(alerts.length > 0) {
+                setTimeout(() => {
+                    alerts.forEach(alert => {
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-20px)';
+                        setTimeout(() => alert.remove(), 500); 
+                    });
+                }, 1000); 
+            }
+        });
+
+        // --- User Filtering & Sorting Logic ---
+        let currentSortOrder = 'asc';
+
+        function toggleSort() {
+            currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+            document.getElementById('sortBtn').innerText = currentSortOrder === 'asc' ? 'A-Z ⬇️' : 'Z-A ⬆️';
+            filterAndSortUsers();
+        }
+
+        function filterAndSortUsers() {
+            const roleFilter = document.getElementById('roleFilter').value;
+            const tableBody = document.getElementById('usersTableBody');
+            const rows = Array.from(tableBody.querySelectorAll('.user-row'));
+
+            rows.forEach(row => {
+                const role = row.getAttribute('data-role');
+                const matchesRole = roleFilter === 'all' || role === roleFilter;
+                row.style.display = matchesRole ? '' : 'none';
+            });
+
+            const visibleRows = rows.filter(row => row.style.display !== 'none');
+            visibleRows.sort((a, b) => {
+                const nameA = a.getAttribute('data-name');
+                const nameB = b.getAttribute('data-name');
+                return currentSortOrder === 'asc' 
+                    ? nameA.localeCompare(nameB) 
+                    : nameB.localeCompare(nameA);
+            });
+
+            visibleRows.forEach(row => tableBody.appendChild(row));
+        }
+
+        // --- Delete User Modal Logic ---
+        function openDeleteModal(userId, userName) {
+            const modal = document.getElementById('actionModal');
+            const form = document.getElementById('actionForm');
+            const text = document.getElementById('modalText');
+
+            form.action = `/admin/delete_user/${userId}`;
+            text.innerHTML = `Are you sure you want to permanently delete <strong>${userName}</strong>? This action cannot be undone.`;
+            modal.style.display = 'flex';
+        }
+
+        function closeAdminModal() {
+            document.getElementById('actionModal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
