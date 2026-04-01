@@ -28,6 +28,8 @@
       
       <ul class="links">
         <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Home</a></li>
+       
+       {% if session.role != 'admin' and session.role != 'eventmanager' %}
        <li class="dropdown">
         <a href="javascript:void(0)" class="dropbtn">Services</a>
         <ul class="dropdown-content">
@@ -36,7 +38,9 @@
           <li><a href="{{ url_for('corporateservices') }}">CORPORATE EVENT</a></li>
           <li><a href="{{ url_for('publicservices') }}">PUBLIC EVENTS</a></li>
         </ul>
-      </li>
+       </li>
+       {% endif %}
+       
         <li><a href="#about">About</a></li>
         
         {% if session.user_id %}
@@ -114,17 +118,21 @@
               <input type="email" id="forgotEmail" placeholder="Enter your Email" required>
               <i class="fas fa-envelope"></i>
             </div>
-            <button type="submit" class="modal-login-btn">Submit</button>
+            <button type="button" class="modal-login-btn" id="sendOtpBtn">Send OTP</button>
           </div>
           <div id="otpStep" style="display: none;">
             <p style="text-align: center; color: #fff; font-size: 14px; margin-bottom: 15px;">
                OTP has been sent to your email
             </p>
             <div class="input-group">
-              <input type="text" id="otpCode" placeholder="Enter OTP" required>
+              <input type="text" id="otpCode" placeholder="Enter 6-digit OTP" required>
               <i class="fas fa-key"></i>
             </div>
-            <button type="button" class="modal-login-btn" id="verifyOtpBtn">Verify & Submit</button>
+            <div class="input-group password-group">
+              <input type="password" id="newForgotPass" placeholder="New Password" class="password-input" required>
+              <i class="fas fa-eye-slash toggle-password"></i>
+            </div>
+            <button type="button" class="modal-login-btn" id="verifyOtpBtn">Verify & Reset Password</button>
           </div>
         </form>
       </div>
@@ -148,30 +156,30 @@
 
           <div class="form-columns" id="formColumnsContainer">
             <div class="form-column">
-              <div class="input-group">
-                <input type="text" id="regFullName" name="regFullName" placeholder="Full Name" required>
+              <div class="input-group" id="fullNameGroup">
+                <input type="text" id="regFullName" name="regFullName" placeholder="Username" required>
                 <i class="fas fa-user"></i>
+              </div>
+              <div class="input-group" id="emailGroup">
+                <input type="email" id="regEmail" name="regEmail" placeholder="Email" required>
+                <i class="fas fa-envelope"></i>
               </div>
               <div class="input-group" id="businessNameGroup" style="display: none;">
                 <input type="text" id="regBusinessName" name="regBusinessName" placeholder="Business Name">
                 <i class="fas fa-briefcase"></i>
               </div>
-              <div class="input-group password-group">
-                <input type="password" id="regPass" name="regPass" placeholder="Create Password" class="password-input" required>
+              <div class="input-group password-group" id="passwordGroup">
+                <input type="password" id="regPass" name="regPass" placeholder="Password" class="password-input" required>
                 <i class="fas fa-eye-slash toggle-password"></i>
               </div>
             </div>
 
             <div class="form-column">
-              <div class="input-group">
-                <input type="email" id="regEmail" name="regEmail" placeholder="Email" required>
-                <i class="fas fa-envelope"></i>
-              </div>
               <div class="input-group" id="phoneGroup" style="display: none;">
                 <input type="tel" id="regPhone" name="regPhone" placeholder="Phone Number">
                 <i class="fas fa-phone"></i>
               </div>
-              <div class="input-group password-group">
+              <div class="input-group password-group" id="confirmGroup">
                 <input type="password" id="confirmPass" placeholder="Confirm Password" class="password-input" required>
                 <i class="fas fa-eye-slash toggle-password"></i>
               </div>
@@ -203,7 +211,7 @@
         <span class="left1" id="text1">WEDDING EVENTS</span>
         <span class="left2" id="text2">Dont wait</span>
         <span class="left3" id="text3">ani kid manta</span>
-        <a class="left4" id="text4" href="/frontend/templates/weddingservices.html">explore now</a>
+        <a class="left4" id="text4" href="{{ url_for('public_explore') }}">explore now</a>
       </div>
       <div class="food" id="food"></div>
     </div>
@@ -268,8 +276,8 @@
         <div class="footer-section">
           <h4>Professional</h4>
           <ul>
-            <li><a href="javascript:void(0)" id="openRegisterFooter">Register as a Event Manager</a></li>
-            <li><a href="javascript:void(0)" id="openRegisterAdminFooter">Register as Admin</a></li>
+            <li><a href="javascript:void(0)" id="openRegisterFooter">Register as Event Manager</a></li>
+            <li><a href="javascript:void(0)" id="openRegisterAdminFooter">Login as Admin</a></li>
           </ul>
         </div>
       </div>
@@ -331,7 +339,6 @@
   const modal = document.getElementById('loginModal');
   const closeModal = document.querySelector('.close-modal');
 
-  // SAFEGUARD: Only run if the login button is present
   if(loginBtn) {
       loginBtn.addEventListener('click', (e) => {
         e.preventDefault();
@@ -398,7 +405,15 @@
   if(openRegisterFooter) {
       openRegisterFooter.addEventListener('click', (e) => {
         e.preventDefault();
-        registerModal.style.display = 'flex';
+        if(loginModal) loginModal.style.display = 'none';
+        if(registerModal) {
+          registerModal.style.display = 'flex';
+          const targetRadio = document.querySelector('input[name="regUserRole"][value="eventmanager"]');
+          if (targetRadio) {
+            targetRadio.checked = true;
+            setRegisterFieldsLayout('eventmanager');
+          }
+        }
       });
   }
 
@@ -406,7 +421,12 @@
   if(openRegisterAdminFooter) {
       openRegisterAdminFooter.addEventListener('click', (e) => {
         e.preventDefault();
-        registerModal.style.display = 'flex';
+        if(registerModal) registerModal.style.display = 'none';
+        if(modal) {
+          modal.style.display = 'flex';
+          const adminRadio = document.querySelector('input[name="userRole"][value="admin"]');
+          if (adminRadio) adminRadio.checked = true;
+        }
       });
   }
 
@@ -419,21 +439,59 @@
   const regFileName = document.getElementById('regFileName');
   const formColumnsContainer = document.getElementById('formColumnsContainer');
 
+  const fullNameGroup = document.getElementById('fullNameGroup');
+  const emailGroup = document.getElementById('emailGroup');
+  const passwordGroup = document.getElementById('passwordGroup');
+  const confirmGroup = document.getElementById('confirmGroup');
+
+  function setRegisterFieldsLayout(role) {
+    const firstColumn = formColumnsContainer.querySelector('.form-column:nth-child(1)');
+    const secondColumn = formColumnsContainer.querySelector('.form-column:nth-child(2)');
+
+    if (role === 'eventmanager') {
+      businessNameGroup.style.display = 'block';
+      phoneGroup.style.display = 'block';
+      licenseUploadGroup.style.display = 'block';
+      formColumnsContainer.classList.add('event-manager-layout');
+
+      firstColumn.append(fullNameGroup);
+      firstColumn.append(businessNameGroup);
+      firstColumn.append(passwordGroup);
+
+      secondColumn.append(emailGroup);
+      secondColumn.append(phoneGroup);
+      secondColumn.append(confirmGroup);
+
+      document.getElementById('regFullName').placeholder = 'Full Name';
+      document.getElementById('regPass').placeholder = 'Create Password';
+      document.getElementById('confirmPass').placeholder = 'Confirm Password';
+    } else {
+      businessNameGroup.style.display = 'none';
+      phoneGroup.style.display = 'none';
+      licenseUploadGroup.style.display = 'none';
+      formColumnsContainer.classList.remove('event-manager-layout');
+
+      firstColumn.append(fullNameGroup);
+      firstColumn.append(emailGroup);
+      firstColumn.append(passwordGroup);
+      firstColumn.append(confirmGroup);
+      firstColumn.append(businessNameGroup);
+      firstColumn.append(phoneGroup);
+
+      document.getElementById('regFullName').placeholder = 'Username';
+      document.getElementById('regPass').placeholder = 'Password';
+      document.getElementById('confirmPass').placeholder = 'Confirm Password';
+    }
+  }
+
   roleRadios.forEach(radio => {
     radio.addEventListener('change', (e) => {
-      if (e.target.value === 'eventmanager') {
-        businessNameGroup.style.display = 'block';
-        phoneGroup.style.display = 'block';
-        licenseUploadGroup.style.display = 'block';
-        formColumnsContainer.classList.add('event-manager-layout');
-      } else {
-        businessNameGroup.style.display = 'none';
-        phoneGroup.style.display = 'none';
-        licenseUploadGroup.style.display = 'none';
-        formColumnsContainer.classList.remove('event-manager-layout');
-      }
+      setRegisterFieldsLayout(e.target.value);
     });
   });
+
+  const initialRole = document.querySelector('input[name="regUserRole"]:checked')?.value || 'user';
+  setRegisterFieldsLayout(initialRole);
 
   if(regLicenseInput) {
       regLicenseInput.addEventListener('change', function (e) {
@@ -478,8 +536,51 @@
 
   update(1);
 
-  // Flash Message Auto-Hide Logic
+  // --- CUSTOM ALERT FUNCTION ---
+  function showCustomAlert(message) {
+      const container = document.getElementById('flashContainer');
+      if (!container) return;
+
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert flash-alert';
+      alertDiv.style.cssText = "padding: 15px 20px; border-radius: 8px; font-size: 16px; font-family: 'Sanchez', Georgia, serif; font-weight: bold; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); background-color: #ffffff; color: #333; border-left: 5px solid #953553; margin-bottom: 10px; transition: opacity 0.5s ease, transform 0.5s ease;";
+
+      const icon = document.createElement('i');
+      icon.className = 'fas fa-info-circle';
+      icon.style.cssText = "color: #953553; font-size: 22px;";
+
+      const textSpan = document.createElement('span');
+      textSpan.style.letterSpacing = "0.5px";
+      textSpan.textContent = message;
+
+      alertDiv.appendChild(icon);
+      alertDiv.appendChild(textSpan);
+      
+      container.appendChild(alertDiv);
+
+      setTimeout(() => {
+          alertDiv.style.opacity = '0';
+          alertDiv.style.transform = 'translateY(-20px) translateX(-50%)';
+          setTimeout(() => alertDiv.remove(), 500);
+      }, 4000);
+  }
+
+  // 🟢 AUTO-OPEN LOGIN MODAL AND CLEAN URL TO PREVENT REFRESH BUG
   document.addEventListener('DOMContentLoaded', function() {
+    
+    const url = new URL(window.location);
+    if (url.searchParams.get('login') === 'true') {
+        const modal = document.getElementById('loginModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            
+            // This line instantly removes '?login=true' from your browser bar 
+            // without reloading the page, fixing your refresh bug!
+            url.searchParams.delete('login');
+            window.history.replaceState({}, '', url);
+        }
+    }
+
     const alerts = document.querySelectorAll('.flash-alert');
     if(alerts.length > 0) {
         setTimeout(() => {
@@ -491,6 +592,91 @@
         }, 4000); 
     }
   });
+
+  // --- AJAX FETCH LOGIC FOR FORGOT PASSWORD ---
+  const sendOtpBtn = document.getElementById('sendOtpBtn');
+  const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+
+  if(sendOtpBtn) {
+      sendOtpBtn.addEventListener('click', async () => {
+          const email = document.getElementById('forgotEmail').value;
+          if(!email) {
+              showCustomAlert("Please enter your email first.");
+              return;
+          }
+          
+          sendOtpBtn.innerText = "Sending...";
+          sendOtpBtn.disabled = true;
+
+          try {
+              const response = await fetch('/send_otp', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: new URLSearchParams({ 'email': email })
+              });
+              
+              const data = await response.json();
+              if(data.success) {
+                  showCustomAlert(data.message);
+                  document.getElementById('emailStep').style.display = 'none';
+                  document.getElementById('otpStep').style.display = 'block';
+              } else {
+                  showCustomAlert(data.message);
+              }
+          } catch (err) {
+              showCustomAlert("An error occurred. Please try again.");
+          } finally {
+              sendOtpBtn.innerText = "Send OTP";
+              sendOtpBtn.disabled = false;
+          }
+      });
+  }
+
+  if(verifyOtpBtn) {
+      verifyOtpBtn.addEventListener('click', async () => {
+          const email = document.getElementById('forgotEmail').value;
+          const otp = document.getElementById('otpCode').value;
+          const newPass = document.getElementById('newForgotPass').value;
+          
+          if(!otp || !newPass) {
+              showCustomAlert("Please enter the OTP and a new password.");
+              return;
+          }
+
+          verifyOtpBtn.innerText = "Verifying...";
+          verifyOtpBtn.disabled = true;
+
+          try {
+              const response = await fetch('/reset_password', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                  body: new URLSearchParams({ 
+                      'email': email, 
+                      'otp': otp,
+                      'new_password': newPass
+                  })
+              });
+              
+              const data = await response.json();
+              if(data.success) {
+                  showCustomAlert(data.message);
+                  document.getElementById('forgotModal').style.display = 'none';
+                  document.getElementById('loginModal').style.display = 'flex';
+                  
+                  document.getElementById('forgotForm').reset();
+                  document.getElementById('emailStep').style.display = 'block';
+                  document.getElementById('otpStep').style.display = 'none';
+              } else {
+                  showCustomAlert(data.message);
+              }
+          } catch (err) {
+              showCustomAlert("An error occurred. Please try again.");
+          } finally {
+              verifyOtpBtn.innerText = "Verify & Reset Password";
+              verifyOtpBtn.disabled = false;
+          }
+      });
+  }
 </script>
 </body>
 </html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explore Vendors | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <style>
+        body { background-color: #f8f9fa; color: #333; margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .navbar { background-color: #953553; }
+        
+        .explore-container { padding: 50px 8%; background: rgba(255,255,255,0.9); min-height: 100vh; }
+        .vendor-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; margin-top: 30px; }
+        
+        /* Vendor Card Styles */
+        .vendor-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #eee; display: flex; flex-direction: column; }
+        .vendor-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(149, 53, 83, 0.15); border-color: #953553; }
+        .vc-image { width: 100%; height: 180px; object-fit: cover; }
+        .vc-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
+        .vc-category { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .vc-title { font-size: 18px; color: #953553; font-weight: bold; margin-bottom: 10px; }
+        .vc-business { font-size: 14px; color: #555; margin-bottom: 15px; font-weight: 600; }
+        .vc-detail { font-size: 14px; color: #666; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .vc-detail i { color: #953553; width: 16px; text-align: center; }
+        .vc-actions { display: flex; gap: 10px; margin-top: auto; border-top: 1px solid #eee; padding-top: 15px; }
+        
+        .btn-view { flex: 1; background: white; color: #953553; border: 1px solid #953553; padding: 8px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold; transition: 0.2s; cursor: pointer; }
+        .btn-view:hover { background: #fdf5f7; }
+        .btn-book { flex: 1; background: #953553; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; transition: 0.2s; cursor: pointer; text-align: center; }
+        .btn-book:hover { background: #7a2b43; }
+
+        /* 🟢 THEME-BASED MODAL STYLES */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 40px 30px; border-radius: 15px; position: relative; animation: scaleIn 0.3s ease-out; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #999; font-weight: bold; z-index: 2100; transition: 0.2s; }
+        .close-btn:hover { color: #953553; transform: scale(1.1); }
+        
+        .btn-login-modal { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; background: linear-gradient(135deg, #953553, #A95c68); color: white; transition: 0.3s; box-shadow: 0 4px 15px rgba(149,53,83,0.3); text-decoration: none; display: inline-block; }
+        .btn-login-modal:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(149,53,83,0.5); }
+        .btn-cancel { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; background: #eee; color: #555; transition: 0.2s; }
+        .btn-cancel:hover { background: #e0e0e0; color: #333; }
+
+        @keyframes scaleIn { 
+            from { transform: scale(0.9); opacity: 0; } 
+            to { transform: scale(1); opacity: 1; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+      <div class="logo">Evenzo</div>
+      <ul class="links">
+        <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Home</a></li>
+        <li class="dropdown">
+          <a href="javascript:void(0)" class="dropbtn" style="color: white; text-decoration: none;">Services</a>
+          <ul class="dropdown-content">
+            <li><a href="{{ url_for('weddingservices') }}">WEDDING EVENTS</a></li>
+            <li><a href="{{ url_for('specialservices') }}">PERSONAL EVENTS</a></li>
+            <li><a href="{{ url_for('corporateservices') }}">CORPORATE EVENT</a></li>
+            <li><a href="{{ url_for('publicservices') }}">PUBLIC EVENTS</a></li>
+          </ul>
+        </li>
+        <li><a href="{{ url_for('index') }}#about">About</a></li>
+        <li><a href="{{ url_for('index') }}?login=true" style="border: 2px solid white; padding: 5px 15px; border-radius: 20px;">Login</a></li>
+      </ul>
+    </div>
+
+    <div class="explore-container">
+        <h1 style="color: #953553; text-align: center;">Explore Event Handlers</h1>
+        <p style="text-align: center; color: #666;">Browse our top-rated event handlers and portfolios.</p>
+
+        <div class="vendor-grid">
+            {% if services %}
+                {% for service in services %}
+                <div class="vendor-card">
+                    {% set raw_imgs = service.images.split(',') if service.images else [] %}
+                    {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+                    
+                    {% if clean_imgs|length > 0 %}
+                        <img src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" class="vc-image">
+                    {% else %}
+                        <div class="vc-image" style="display: flex; align-items: center; justify-content: center; background: #eee; color: #aaa;">No Image</div>
+                    {% endif %}
+
+                    <div class="vc-body">
+                        <div class="vc-category">{{ service.category }}</div>
+                        <div class="vc-title">{{ service.service_name }}</div>
+                        <div class="vc-business"><i class="fas fa-store"></i> {{ service.business_name }}</div>
+                        
+                        <div class="vc-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                        <div class="vc-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
+                        <div class="vc-detail"><i class="fas fa-tag"></i> <strong>Pricing:</strong> ₹{{ service.pricing }}</div>
+
+                        <div class="vc-actions">
+                            <a href="{{ url_for('public_vendor_details', service_id=service.id) }}" class="btn-view">View</a>
+                            <button onclick="requireLogin()" class="btn-book">Book</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #888; text-align: center; grid-column: 1 / -1;">No event handlers are currently available.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div id="loginRequiredModal" class="modal">
+        <div class="modal-content" style="max-width: 420px; text-align: center;">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            
+            <div style="width: 80px; height: 80px; background: #fdf5f7; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 2px dashed #953553;">
+                <i class="fas fa-lock" style="font-size: 35px; color: #953553;"></i>
+            </div>
+            
+            <h2 style="color: #953553; margin-bottom: 10px;">Login Required</h2>
+            <p style="color: #666; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
+                You need to be logged in to send a booking request to an event handler. Create an account or log in to continue!
+            </p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+                <button type="button" onclick="closeLoginModal()" class="btn-cancel">Cancel</button>
+                <button type="button" onclick="window.location.href='/?login=true'" class="btn-login-modal">Login / Register</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🟢 SCRIPT FOR THE CUSTOM MODAL
+        const modal = document.getElementById('loginRequiredModal');
+
+        function requireLogin() {
+            modal.style.display = 'flex';
+        }
+
+        function closeLoginModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside the box
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeLoginModal();
+            }
+        });
+    </script>
+</body>
+</html>

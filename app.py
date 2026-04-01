@@ -20,7 +20,6 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
 def get_db_connection():
-    # Adding a 10-second timeout helps prevent "database is locked" errors
     conn = sqlite3.connect('database.db', timeout=10)
     conn.row_factory = sqlite3.Row  
     return conn
@@ -194,7 +193,7 @@ def user_dashboard():
     user_info = conn.execute("SELECT * FROM users WHERE id = ?", (session['user_id'],)).fetchone()
     my_bookings = conn.execute('''
         SELECT b.*, m.business_name, s.service_name, s.pricing 
-        FROM bookings b JOIN manager_profiles m ON b.manager_id = m.user_id LEFT JOIN services s ON b.service_id = s.id WHERE b.client_id = ?
+        FROM bookings b JOIN manager_profiles m ON b.manager_id = m.user_id LEFT JOIN services s ON b.service_id = s.id WHERE b.client_id = ? ORDER BY b.created_at DESC
     ''', (session['user_id'],)).fetchall()
     
     all_services = conn.execute('''
@@ -204,6 +203,24 @@ def user_dashboard():
     
     conn.close()
     return render_template('user_dashboard.html', user=user_info, bookings=my_bookings, services=all_services)
+
+@app.route('/pay_booking', methods=['POST'])
+def pay_booking():
+    if 'user_id' not in session or session['role'] != 'user': return redirect(url_for('index'))
+    booking_id = request.form.get('booking_id')
+    
+    conn = get_db_connection()
+    booking = conn.execute("SELECT * FROM bookings WHERE id = ? AND client_id = ? AND status = 'confirmed'", (booking_id, session['user_id'])).fetchone()
+    
+    if booking:
+        conn.execute("UPDATE bookings SET payment_status = 'paid' WHERE id = ?", (booking_id,))
+        conn.commit()
+        flash("Payment successful! Your event is fully secured and you can now leave a review.")
+    else:
+        flash("Invalid booking or not ready for payment.")
+        
+    conn.close()
+    return redirect(url_for('user_dashboard'))
 
 @app.route('/dashboard')
 def dashboard():
@@ -377,7 +394,6 @@ def vendor_details(service_id):
     if 'user_id' not in session: return redirect(url_for('index'))
     conn = get_db_connection()
     
-    # 1. Fetch Service and Manager Details
     service = conn.execute('''
         SELECT s.*, m.business_name, m.rating, u.full_name as manager_name, m.phone 
         FROM services s 
@@ -386,7 +402,6 @@ def vendor_details(service_id):
         WHERE s.id = ?
     ''', (service_id,)).fetchone()
     
-    # 2. Fetch Reviews
     reviews = conn.execute('''
         SELECT r.*, u.full_name as client_name 
         FROM reviews r 
@@ -395,10 +410,10 @@ def vendor_details(service_id):
         ORDER BY r.rating DESC, r.created_at DESC
     ''', (service['manager_id'],)).fetchall()
 
-    # 3. 🟢 STRICT STATUS CHECK: ONLY 'confirmed' users can review
+    # STRICT CHECK: Only 'confirmed' AND 'paid' users can review
     check_booking = conn.execute('''
         SELECT id FROM bookings 
-        WHERE client_id = ? AND service_id = ? AND status = 'confirmed'
+        WHERE client_id = ? AND service_id = ? AND status = 'confirmed' AND payment_status = 'paid'
         LIMIT 1
     ''', (session['user_id'], service_id)).fetchone()
     
@@ -418,23 +433,20 @@ def submit_review():
 
     conn = get_db_connection()
     
-    # 🟢 LAYER 1 STRICT SECURITY: ONLY 'confirmed' users can submit POST request
     check_booking = conn.execute('''
         SELECT id FROM bookings 
-        WHERE client_id = ? AND service_id = ? AND status = 'confirmed'
+        WHERE client_id = ? AND service_id = ? AND status = 'confirmed' AND payment_status = 'paid'
         LIMIT 1
     ''', (session['user_id'], service_id)).fetchone()
 
     if not check_booking:
         conn.close()
-        flash("Unauthorized: You must have a confirmed booking to leave a review.", "error")
+        flash("Unauthorized: You must have a confirmed and paid booking to leave a review.", "error")
         return redirect(url_for('vendor_details', service_id=service_id))
 
-    # Insert review
     conn.execute('INSERT INTO reviews (client_id, manager_id, rating, review_text) VALUES (?, ?, ?, ?)',
                  (session['user_id'], manager_id, rating, review_text))
     
-    # Update manager's average rating
     avg_rating = conn.execute('SELECT AVG(rating) FROM reviews WHERE manager_id = ?', (manager_id,)).fetchone()[0]
     conn.execute('UPDATE manager_profiles SET rating = ? WHERE user_id = ?', (round(avg_rating, 1), manager_id))
     
@@ -442,6 +454,71 @@ def submit_review():
     conn.close()
     flash("Thank you for your review!")
     return redirect(url_for('vendor_details', service_id=service_id))
+
+# 🟢 NEW: EDIT REVIEW ROUTE
+@app.route('/edit_review/<int:review_id>', methods=['POST'])
+def edit_review(review_id):
+    if 'user_id' not in session: return redirect(url_for('index'))
+    
+    new_rating = request.form.get('rating')
+    new_text = request.form.get('review_text')
+    service_id = request.form.get('service_id')
+    
+    conn = get_db_connection()
+    
+    # 1. Ensure the user editing the review actually owns it
+    review = conn.execute("SELECT manager_id FROM reviews WHERE id = ? AND client_id = ?", (review_id, session['user_id'])).fetchone()
+    if not review:
+        conn.close()
+        flash("Unauthorized action.", "error")
+        return redirect(url_for('vendor_details', service_id=service_id))
+        
+    manager_id = review['manager_id']
+    
+    # 2. Update the review
+    conn.execute("UPDATE reviews SET rating = ?, review_text = ? WHERE id = ?", (new_rating, new_text, review_id))
+    
+    # 3. Recalculate average manager rating
+    avg_rating = conn.execute('SELECT AVG(rating) FROM reviews WHERE manager_id = ?', (manager_id,)).fetchone()[0]
+    conn.execute('UPDATE manager_profiles SET rating = ? WHERE user_id = ?', (round(avg_rating, 1), manager_id))
+    
+    conn.commit()
+    conn.close()
+    
+    flash("Review updated successfully!")
+    return redirect(url_for('vendor_details', service_id=service_id))
+
+# 🟢 NEW: DELETE REVIEW ROUTE
+@app.route('/delete_review/<int:review_id>', methods=['POST'])
+def delete_review(review_id):
+    if 'user_id' not in session: return redirect(url_for('index'))
+    
+    service_id = request.form.get('service_id')
+    conn = get_db_connection()
+    
+    # 1. Ensure ownership
+    review = conn.execute("SELECT manager_id FROM reviews WHERE id = ? AND client_id = ?", (review_id, session['user_id'])).fetchone()
+    if not review:
+        conn.close()
+        flash("Unauthorized action.", "error")
+        return redirect(url_for('vendor_details', service_id=service_id))
+        
+    manager_id = review['manager_id']
+    
+    # 2. Delete review
+    conn.execute("DELETE FROM reviews WHERE id = ?", (review_id,))
+    
+    # 3. Recalculate average manager rating (handles case where 0 reviews are left)
+    avg_rating_row = conn.execute('SELECT AVG(rating) FROM reviews WHERE manager_id = ?', (manager_id,)).fetchone()
+    avg_rating = avg_rating_row[0] if avg_rating_row[0] is not None else 0.0
+    conn.execute('UPDATE manager_profiles SET rating = ? WHERE user_id = ?', (round(avg_rating, 1), manager_id))
+    
+    conn.commit()
+    conn.close()
+    
+    flash("Review deleted successfully!")
+    return redirect(url_for('vendor_details', service_id=service_id))
+
 
 @app.route('/book_vendor', methods=['POST'])
 def book_vendor():
@@ -638,8 +715,7 @@ def delete_user(user_id):
     conn.commit()
     conn.close()
     flash("User account deleted.")
-    return redirect(url_for('admin_dashboard'))
-
+    return redirect(url_for('admin_users'))
 
 def send_manager_approval_email(manager_email, manager_name):
     subject = "Your Evenzo Account is Approved!"
@@ -672,6 +748,39 @@ def send_manager_approval_email(manager_email, manager_name):
         server.quit()
     except Exception as e:
         print("Approval Email sending failed:", str(e))
+
+@app.route('/public_explore')
+def public_explore():
+    conn = get_db_connection()
+    # Fetch all services to display to the public
+    all_services = conn.execute('SELECT s.*, m.business_name, m.profile_pic FROM services s JOIN manager_profiles m ON s.manager_id = m.user_id').fetchall()
+    conn.close()
+    return render_template('public_explore.html', services=all_services)
+
+@app.route('/public_vendor_details/<int:service_id>')
+def public_vendor_details(service_id):
+    conn = get_db_connection()
+    
+    # Fetch Service and Manager Details
+    service = conn.execute('''
+        SELECT s.*, m.business_name, m.rating, u.full_name as manager_name, m.phone 
+        FROM services s 
+        JOIN manager_profiles m ON s.manager_id = m.user_id 
+        JOIN users u ON m.user_id = u.id 
+        WHERE s.id = ?
+    ''', (service_id,)).fetchone()
+    
+    # Fetch Reviews
+    reviews = conn.execute('''
+        SELECT r.*, u.full_name as client_name 
+        FROM reviews r 
+        JOIN users u ON r.client_id = u.id 
+        WHERE r.manager_id = ? 
+        ORDER BY r.rating DESC, r.created_at DESC
+    ''', (service['manager_id'],)).fetchall()
+
+    conn.close()
+    return render_template('public_vendor_details.html', service=service, reviews=reviews)
 
 @app.route('/logout')
 def logout():

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ service.service_name }} | Evenzo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <style>
+        body { background-color: #f8f9fa; color: #333; margin: 0; font-family: 'Segoe UI', sans-serif; }
+        .navbar { background-color: #953553; }
+        
+        .main-container { padding: 40px 10%; background: rgba(255,255,255,0.9); min-height: 100vh; }
+        .details-grid { display: grid; grid-template-columns: 2fr 1.3fr; gap: 30px; align-items: start; margin-top: 20px; }
+        
+        .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        
+        /* 🟢 IMAGE SLIDER STYLES */
+        .slider-card { position: relative; padding: 20px !important; }
+        .main-image { width: 100%; height: 450px; object-fit: cover; border-radius: 8px; border: 1px solid #eee; transition: 0.3s; }
+        .slider-controls { position: absolute; top: 50%; transform: translateY(-50%); width: calc(100% - 40px); display: flex; justify-content: space-between; padding: 0 10px; pointer-events: none; }
+        .slider-btn { background: rgba(255,255,255,0.9); color: #953553; border: none; width: 45px; height: 45px; font-size: 20px; cursor: pointer; border-radius: 50%; pointer-events: auto; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; }
+        .slider-btn:hover { background: #953553; color: white; }
+        
+        .v-title { font-size: 28px; color: #953553; font-weight: bold; margin-bottom: 10px; }
+        .v-detail { font-size: 15px; color: #555; display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px; }
+        .v-detail i { color: #953553; width: 20px; text-align: center; }
+        
+        /* 🟢 THEME-BASED LOGIN BOX */
+        .login-box { 
+            background: linear-gradient(135deg, rgba(149,53,83,0.05), rgba(169,92,104,0.1)); 
+            border: 2px solid rgba(149,53,83,0.2); 
+            border-radius: 15px; 
+            padding: 40px 25px; 
+            text-align: center; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+        }
+        .icon-circle {
+            width: 70px; height: 70px; background: white; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            margin: 0 auto 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .btn-login { 
+            background: linear-gradient(135deg, #953553, #A95c68); 
+            color: white; border: none; padding: 14px 35px; border-radius: 30px; 
+            font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 20px; 
+            transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(149,53,83,0.3); 
+            display: inline-block; text-decoration: none;
+        }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(149,53,83,0.5); }
+        
+        .review-card { border-bottom: 1px solid #eee; padding: 15px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+      <div class="logo">Evenzo</div>
+      <ul class="links">
+        <li><a href="{{ url_for('index') }}" style="color: white; text-decoration: none;">Home</a></li>
+        <li><a href="{{ url_for('index') }}?login=true" style="border: 2px solid white; padding: 5px 15px; border-radius: 20px;">Login</a></li>
+      </ul>
+    </div>
+
+    <div class="main-container">
+        <a href="{{ url_for('public_explore') }}" style="color: #666; text-decoration: none; font-weight: bold;"><i class="fas fa-arrow-left"></i> Back to Vendors</a>
+        
+        <div class="details-grid">
+            <div>
+                <div class="card slider-card">
+                    {% set raw_imgs = service.images.split(',') if service.images else [] %}
+                    {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+                    {% if clean_imgs|length > 0 %}
+                        <img id="mainCarouselImg" src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" class="main-image">
+                        
+                        {% if clean_imgs|length > 1 %}
+                        <div class="slider-controls">
+                            <button class="slider-btn" onclick="changeImage(-1)"><i class="fas fa-chevron-left"></i></button>
+                            <button class="slider-btn" onclick="changeImage(1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div style="text-align: center; margin-top: 15px; color: #888; font-weight: bold;">Image <span id="imgCounter">1</span> of {{ clean_imgs|length }}</div>
+                        {% endif %}
+                        
+                    {% else %}
+                        <div class="main-image" style="display: flex; align-items: center; justify-content: center; background: #eee; color: #aaa; font-size: 18px;">No Images Available</div>
+                    {% endif %}
+                </div>
+
+                <div class="card">
+                    <div class="v-title">{{ service.service_name }}</div>
+                    <div style="font-weight: 600; color: #555; margin-bottom: 20px;"><i class="fas fa-store" style="color: #953553;"></i> {{ service.business_name }}</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                        <div class="v-detail"><i class="fas fa-concierge-bell"></i> <strong>Service:</strong> {{ service.services_offered }}</div>
+                        <div class="v-detail"><i class="fas fa-gem"></i> <strong>Package:</strong> {{ service.package_tier }}</div>
+                        <div class="v-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
+                        <div class="v-detail"><i class="fas fa-star"></i> <strong>Exp:</strong> {{ service.experience_years }} Years</div>
+                    </div>
+                    <h3 style="color: #953553; margin-bottom: 10px;">Description</h3>
+                    <p style="color: #666; line-height: 1.7; white-space: pre-wrap;">{{ service.description }}</p>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #953553; margin-bottom: 15px;">Customer Reviews</h3>
+                    <p style="font-weight: bold; font-size: 18px; margin-bottom: 15px;">Average Rating: <span style="color: #f39c12;">⭐ {{ service.rating if service.rating else '0.0' }}</span></p>
+                    {% for review in reviews %}
+                    <div class="review-card">
+                        <p style="font-weight: bold; margin-bottom: 5px;">{{ review.client_name }} <span style="color: #f39c12; margin-left: 10px;">{{ review.rating }} ⭐</span></p>
+                        <p style="color: #555; font-style: italic;">"{{ review.review_text }}"</p>
+                    </div>
+                    {% else %}
+                    <p style="color: #999; padding: 10px 0;">No reviews yet. Be the first to book and review!</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div>
+                <div class="card" style="padding: 0; overflow: hidden; position: sticky; top: 40px;">
+                    <div style="padding: 20px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="font-size: 16px; color: #555; margin: 0;">Base Price</h3>
+                        <div style="font-size: 24px; color: #953553; font-weight: bold;">₹ {{ service.pricing }}</div>
+                    </div>
+                    
+                    <div style="padding: 30px;">
+                        <div class="login-box">
+                            <div class="icon-circle">
+                                <i class="fas fa-lock" style="font-size: 30px; color: #953553;"></i>
+                            </div>
+                            <h3 style="color: #953553; margin-bottom: 10px; font-size: 22px;">Login to Book</h3>
+                            <p style="color: #555; font-size: 15px; margin-bottom: 20px; line-height: 1.6;">You must be logged in to calculate exact pricing, view contact details, and send a booking request.</p>
+                            <button onclick="window.location.href='/?login=true'" class="btn-login">Login / Register Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        {% set raw_imgs = service.images.split(',') if service.images else [] %}
+        {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
+        
+        {% if clean_imgs|length > 0 %}
+        const images = [
+            {% for img in clean_imgs %}
+                "{{ url_for('uploaded_file', filename=img) }}"{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+        let currentIdx = 0;
+        
+        function changeImage(direction) {
+            currentIdx += direction;
+            if (currentIdx < 0) currentIdx = images.length - 1;
+            if (currentIdx >= images.length) currentIdx = 0;
+            
+            document.getElementById('mainCarouselImg').src = images[currentIdx];
+            document.getElementById('imgCounter').innerText = currentIdx + 1;
+        }
+        {% endif %}
+    </script>
+</body>
+</html>

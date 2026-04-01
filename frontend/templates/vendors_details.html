@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ service.service_name }} | Evenzo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
     <style>
@@ -53,10 +52,8 @@
         .price-amt { font-size: 20px; color: #555; font-weight: bold; }
         .price-type { font-size: 14px; color: #666; text-transform: capitalize; }
 
-        /* Quantity Input Highlight */
         .qty-input-wrapper input:focus { border-color: var(--primary) !important; box-shadow: 0 0 5px rgba(149, 53, 83, 0.2); }
 
-        /* Action Buttons */
         .action-pills { display: flex; gap: 10px; padding: 25px; border-bottom: 2px solid var(--primary); }
         .pill-btn { flex: 1; padding: 12px; border-radius: 30px; border: none; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
         
@@ -65,7 +62,6 @@
         .btn-call { background: white; color: var(--primary); border: 2px solid var(--primary); }
         .btn-call:hover { background: #f9f0f2; }
 
-        /* Message Form Area */
         .booking-form { padding: 25px; }
         .greeting { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 25px; }
         
@@ -98,7 +94,7 @@
 
         #contactNumberDisplay { display: none; text-align: center; font-size: 18px; font-weight: bold; color: var(--primary); margin-top: -10px; margin-bottom: 20px; border: 1px dashed var(--primary); padding: 10px; border-radius: 8px; background: #fdf5f7; }
 
-        /* Review Styles Added */
+        /* Review Styles */
         .reviews-section { margin-top: 40px; padding: 25px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .add-review-box { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px; background: #fdf5f7; }
         .rating-selection { display: flex; gap: 15px; margin-bottom: 15px; }
@@ -106,9 +102,28 @@
         .rating-selection input { accent-color: var(--primary); }
         .review-card { border-bottom: 1px solid #eee; padding: 15px 0; }
         .review-card:last-child { border-bottom: none; }
+        
+        /* Modal for Edit Review */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; position: relative; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #666; font-weight: bold; }
+        .close-btn:hover { color: var(--primary); }
     </style>
 </head>
 <body>
+
+    <div class="flash-messages" id="flashContainer" style="position: fixed; top: 30px; right: 30px; z-index: 9999; width: auto; max-width: 400px;">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert flash-alert" style="padding: 15px 20px; border-radius: 8px; font-size: 16px; font-family: 'Segoe UI', Tahoma, sans-serif; font-weight: bold; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); background-color: #ffffff; color: #333; border-left: 5px solid #2e7d32; margin-bottom: 10px; transition: opacity 0.5s ease, transform 0.5s ease;">
+                        <i class="fas fa-check-circle" style="color: #2e7d32; font-size: 22px;"></i> 
+                        <span style="letter-spacing: 0.5px;">{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
 
     <div class="sidebar">
         <div class="logo">Evenzo</div>
@@ -160,7 +175,7 @@
                         <div class="v-detail"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ service.service_location }}</div>
                         <div class="v-detail"><i class="fas fa-star"></i> <strong>Experience:</strong> {{ service.experience_years }} Years</div>
                     </div>
-                    <div class="desc-title">About this Package</div>
+                    <div class="desc-title" style="font-weight:bold; color:var(--primary); margin-bottom:10px;">About this Package</div>
                     <div class="v-description">{{ service.description }}</div>
                 </div>
 
@@ -204,6 +219,18 @@
                                 <p style="font-weight: bold; margin-bottom: 5px;">{{ review.client_name }} <span style="color: #f39c12; margin-left: 10px;">{{ review.rating }} ⭐</span></p>
                                 <p style="color: #555; font-style: italic;">"{{ review.review_text }}"</p>
                                 <small style="color: #999;">Posted on: {{ review.created_at.split(' ')[0] }}</small>
+                                
+                                {% if session.user_id == review.client_id %}
+                                <div style="margin-top: 10px; display: flex; gap: 15px;">
+                                    <button onclick="openEditReviewModal('{{ review.id }}', '{{ review.rating }}', '{{ review.review_text | escape }}')" style="background: none; border: none; color: var(--primary); cursor: pointer; font-size: 13px; font-weight: bold; padding: 0;"><i class="fas fa-edit"></i> Edit</button>
+                                    
+                                    <form action="{{ url_for('delete_review', review_id=review.id) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+                                        <input type="hidden" name="service_id" value="{{ service.id }}">
+                                        <button type="submit" style="background: none; border: none; color: #d32f2f; cursor: pointer; font-size: 13px; font-weight: bold; padding: 0;"><i class="fas fa-trash-alt"></i> Delete</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                                
                             </div>
                             {% else %}
                             <p style="text-align: center; color: #999; padding: 20px;">No reviews yet.</p>
@@ -293,8 +320,60 @@
         </div>
     </div>
 
+    <div id="editReviewModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" onclick="closeEditReviewModal()">&times;</span>
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Edit Review</h2>
+            <form id="editReviewForm" method="POST">
+                <input type="hidden" name="service_id" value="{{ service.id }}">
+                <div class="rating-selection" id="editRatingSelection">
+                    {% for i in range(1, 6) %}
+                    <label><input type="radio" name="rating" value="{{ i }}" required> {{ i }} ⭐</label>
+                    {% endfor %}
+                </div>
+                <textarea name="review_text" id="editReviewText" required style="width: 100%; height: 80px; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 15px; font-family: inherit;"></textarea>
+                <button type="submit" class="submit-btn" style="width: auto; padding: 10px 30px; margin-top: 0;">Update Review</button>
+            </form>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        // 🟢 FLASH MESSAGE AUTO-HIDE LOGIC
+        document.addEventListener("DOMContentLoaded", () => {
+            const alerts = document.querySelectorAll('.flash-alert');
+            if(alerts.length > 0) {
+                setTimeout(() => {
+                    alerts.forEach(alert => {
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-20px)';
+                        setTimeout(() => alert.remove(), 500); 
+                    });
+                }, 4000); 
+            }
+        });
+
+        // 🟢 EDIT REVIEW MODAL LOGIC
+        function openEditReviewModal(reviewId, rating, text) {
+            document.getElementById('editReviewForm').action = '/edit_review/' + reviewId;
+            document.getElementById('editReviewText').value = text;
+            
+            // Check the correct star rating radio button
+            const radios = document.querySelectorAll('#editRatingSelection input[name="rating"]');
+            radios.forEach(r => {
+                if(r.value === rating) {
+                    r.checked = true;
+                }
+            });
+            
+            document.getElementById('editReviewModal').style.display = 'flex';
+        }
+
+        function closeEditReviewModal() {
+            document.getElementById('editReviewModal').style.display = 'none';
+        }
+
+
         // --- 1. DYNAMIC PRICING CALCULATION & LABEL LOGIC ---
         const rawPricingStr = "{{ service.pricing if service.pricing else '0' }}";
         const numericPart = rawPricingStr.replace(/[^0-9.]/g, ''); 

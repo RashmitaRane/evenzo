@@ -13,6 +13,8 @@ span {
 }
 
 .navbar {
+    position: relative; 
+    z-index: 9999 !important; /* Forces the bar above hero/food images */
     display: flex;
     justify-content: space-between;
     padding: 0px 100px 0px 50px;
@@ -56,11 +58,13 @@ span {
     font-weight: 700; 
 }
 
-.hero{
+/* 🟢 FIX: Stretches the hero section to fit the screen */
+.hero {
   display:flex;
   align-items: center;
   gap: 150px;
   margin-top: 30px;
+  min-height: calc(100vh - 250px); 
 }
 
 .left{
@@ -124,12 +128,16 @@ background: url('/static/images/wedd.jpg');
   background-repeat: no-repeat;
  
 }
+
+/* 🟢 FIX: Pushes the About section completely out of view initially */
 .items{
   display:flex;
   padding-left:150px ;
   margin-top: -50px;
   gap:20px;
+  margin-bottom: 120px; 
 }
+
 #food1,#food2,#food3,#food4{
  border:2px solid white;
   width:120px;
@@ -337,10 +345,6 @@ body {
 .login-btn:active {
   transform: scale(0.96);
 }
-
-
-
-
 
 /* 9. TEXT CHANGE ANIMATION */
 span {
