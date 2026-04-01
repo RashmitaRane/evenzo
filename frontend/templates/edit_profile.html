@@ -7,11 +7,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-light); display: flex; font-family: 'Segoe UI', sans-serif; margin: 0; }
         
-        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; }
-        .nav-item { padding: 15px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; }
+        /* Unified Sidebar Design - Pixel Perfect */
+        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; top: 0; left: 0; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; box-sizing: border-box; margin: 0; }
+        .sidebar .logo { font-size: 28px; font-weight: bold; margin: 0 0 40px 0; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: block; }
+        .nav-menu { list-style: none; flex-grow: 1; margin: 0; padding: 0; display: block; }
+        .nav-item { padding: 15px; margin: 0 0 10px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 16px; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
+        .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: block; }
 
         .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
         .profile-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); max-width: 800px; margin: 0 auto; }
@@ -29,15 +34,18 @@
     </style>
 </head>
 <body>
+
     <div class="sidebar">
-        <div class="logo" style="font-size: 28px; font-weight: bold; margin-bottom: 40px; text-align: center;">Evenzo</div>
-        <nav>
+        <div class="logo">Evenzo</div>
+        <nav class="nav-menu">
             <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="{{ url_for('dashboard') }}" class="nav-item"><i class="fas fa-calendar-check"></i> Bookings</a>
             <a href="{{ url_for('edit_profile') }}" class="nav-item active"><i class="fas fa-user-edit"></i> Edit Profile</a>
             <a href="{{ url_for('portfolio') }}" class="nav-item"><i class="fas fa-images"></i> Portfolio</a>
+            <a href="{{ url_for('index') }}" class="nav-item"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </nav>
-        <a href="{{ url_for('logout') }}" class="nav-item" style="margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <div class="logout-container">
+            <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
     </div>
 
     <div class="main-content">

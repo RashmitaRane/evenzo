@@ -115,6 +115,7 @@
         <nav class="nav-menu">
             <a href="{{ url_for('user_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> My Dashboard</a>
             <a href="{{ url_for('explore') }}" class="nav-item active"><i class="fas fa-search"></i> Find Vendors</a>
+            <a href="{{ url_for('index') }}" class="nav-item"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </nav>
         <div class="logout-container">
             <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -205,7 +206,7 @@
                                 <small style="color: #999;">Posted on: {{ review.created_at.split(' ')[0] }}</small>
                             </div>
                             {% else %}
-                            <p style="text-align: center; color: #999; padding: 20px;">No confirmed reviews yet.</p>
+                            <p style="text-align: center; color: #999; padding: 20px;">No reviews yet.</p>
                             {% endfor %}
                         </div>
                     </div>

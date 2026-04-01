@@ -134,7 +134,6 @@ def register():
             cursor.execute("INSERT INTO manager_profiles (user_id, business_name, phone, license_path) VALUES (?, ?, ?, ?)", (user_id, biz_name, phone, filename))
         conn.commit()
         
-        # --- NEW CUSTOM FLASH MESSAGE ---
         if role == 'eventmanager':
             flash("Registration Successful! Your request has been sent to the Admin for approval.")
         else:
@@ -155,9 +154,7 @@ def login():
     
     conn = get_db_connection()
     
-    # --- 🟢 ADMIN LOGIN BYPASS LOGIC ---
     if email == "shelicoa26@gmail.com" and password == "shelico_evenzo":
-        # Check if admin is in DB, if not, create on the fly
         admin_user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
         if not admin_user:
             cursor = conn.cursor()
@@ -172,9 +169,7 @@ def login():
     conn.close()
 
     if user:
-        # Check if event manager is approved
         if user['role'] == 'eventmanager' and user['is_approved'] == 0:
-            # --- NEW CUSTOM POPUP MESSAGE ---
             flash("Registration not yet accepted by the Admin. Please wait for approval before logging in.")
             return redirect(url_for('index'))
         
@@ -183,7 +178,6 @@ def login():
         session['user_name'] = user['full_name']
         session['role'] = user['role']
         
-        # Role-based Redirection
         if user['role'] == 'admin': return redirect(url_for('admin_dashboard'))
         elif user['role'] == 'eventmanager': return redirect(url_for('dashboard'))
         elif user['role'] == 'user': return redirect(url_for('user_dashboard'))
@@ -202,8 +196,14 @@ def user_dashboard():
         SELECT b.*, m.business_name, s.service_name, s.pricing 
         FROM bookings b JOIN manager_profiles m ON b.manager_id = m.user_id LEFT JOIN services s ON b.service_id = s.id WHERE b.client_id = ?
     ''', (session['user_id'],)).fetchall()
+    
+    all_services = conn.execute('''
+        SELECT s.*, m.business_name, m.profile_pic 
+        FROM services s JOIN manager_profiles m ON s.manager_id = m.user_id
+    ''').fetchall()
+    
     conn.close()
-    return render_template('user_dashboard.html', user=user_info, bookings=my_bookings)
+    return render_template('user_dashboard.html', user=user_info, bookings=my_bookings, services=all_services)
 
 @app.route('/dashboard')
 def dashboard():
@@ -361,8 +361,16 @@ def explore():
     if 'user_id' not in session or session['role'] != 'user': return redirect(url_for('index'))
     conn = get_db_connection()
     all_services = conn.execute('SELECT s.*, m.business_name, m.profile_pic FROM services s JOIN manager_profiles m ON s.manager_id = m.user_id').fetchall()
+    
+    my_bookings = conn.execute('''
+        SELECT b.*, m.business_name 
+        FROM bookings b 
+        JOIN manager_profiles m ON b.manager_id = m.user_id 
+        WHERE b.client_id = ?
+    ''', (session['user_id'],)).fetchall()
+    
     conn.close()
-    return render_template('explore.html', services=all_services)
+    return render_template('explore.html', services=all_services, bookings=my_bookings)
 
 @app.route('/vendor_details/<int:service_id>')
 def vendor_details(service_id):
@@ -378,7 +386,7 @@ def vendor_details(service_id):
         WHERE s.id = ?
     ''', (service_id,)).fetchone()
     
-    # 2. Fetch Reviews (Sorted by highest rating)
+    # 2. Fetch Reviews
     reviews = conn.execute('''
         SELECT r.*, u.full_name as client_name 
         FROM reviews r 
@@ -387,18 +395,14 @@ def vendor_details(service_id):
         ORDER BY r.rating DESC, r.created_at DESC
     ''', (service['manager_id'],)).fetchall()
 
-    # 3. STRICT STATUS CHECK: Only 'confirmed' status allows reviewing
-    # Rejected or Pending users will result in None, setting can_review to False
-    # STRICT CHECK: Only allow review if booking status is 'confirmed'
-    # This automatically excludes 'pending', 'rejected', or 'cancelled' status
+    # 3. 🟢 STRICT STATUS CHECK: ONLY 'confirmed' users can review
     check_booking = conn.execute('''
-        SELECT 1 FROM bookings 
-        WHERE client_id = ? AND manager_id = ? AND status = 'confirmed'
+        SELECT id FROM bookings 
+        WHERE client_id = ? AND service_id = ? AND status = 'confirmed'
         LIMIT 1
-    ''', (session['user_id'], service['manager_id'])).fetchone()
+    ''', (session['user_id'], service_id)).fetchone()
     
-    # If check_booking is None (rejected or no booking), can_review becomes False
-    can_review = True if check_booking else False
+    can_review = True if check_booking is not None else False
 
     conn.close()
     return render_template('vendors_details.html', service=service, reviews=reviews, can_review=can_review)
@@ -413,6 +417,19 @@ def submit_review():
     service_id = request.form.get('service_id')
 
     conn = get_db_connection()
+    
+    # 🟢 LAYER 1 STRICT SECURITY: ONLY 'confirmed' users can submit POST request
+    check_booking = conn.execute('''
+        SELECT id FROM bookings 
+        WHERE client_id = ? AND service_id = ? AND status = 'confirmed'
+        LIMIT 1
+    ''', (session['user_id'], service_id)).fetchone()
+
+    if not check_booking:
+        conn.close()
+        flash("Unauthorized: You must have a confirmed booking to leave a review.", "error")
+        return redirect(url_for('vendor_details', service_id=service_id))
+
     # Insert review
     conn.execute('INSERT INTO reviews (client_id, manager_id, rating, review_text) VALUES (?, ?, ?, ?)',
                  (session['user_id'], manager_id, rating, review_text))
@@ -519,7 +536,6 @@ def admin_dashboard():
         
     conn = get_db_connection()
     
-    # 1. Fetch pending managers (Existing logic)
     pending_managers = conn.execute('''
         SELECT u.id, u.full_name, u.email, m.business_name 
         FROM users u 
@@ -527,14 +543,12 @@ def admin_dashboard():
         WHERE u.role = 'eventmanager' AND u.is_approved = 0
     ''').fetchall()
     
-    # 2. Fetch ALL users (except the admin) for the new management table
     all_users = conn.execute('''
         SELECT id, full_name, email, role, is_approved 
         FROM users 
         WHERE role != 'admin'
     ''').fetchall()
     
-    # 3. Calculate dynamic stats for your top cards
     total_users = sum(1 for u in all_users if u['role'] == 'user')
     total_managers = sum(1 for u in all_users if u['role'] == 'eventmanager' and u['is_approved'] == 1)
     total_pending = len(pending_managers)
@@ -555,7 +569,6 @@ def admin_users():
         return redirect(url_for('index'))
         
     conn = get_db_connection()
-    # Fetch ALL users (except the admin) for the new management table
     all_users = conn.execute('''
         SELECT id, full_name, email, role, is_approved 
         FROM users 
@@ -572,12 +585,11 @@ def admin_action(manager_id, action):
 
     conn = get_db_connection()
     try:
-        # Fetch user details
         user = conn.execute("SELECT email, full_name FROM users WHERE id = ?", (manager_id,)).fetchone()
         
         if action == 'approve':
             conn.execute("UPDATE users SET is_approved = 1 WHERE id = ?", (manager_id,))
-            conn.commit() # Commit immediately after the update
+            conn.commit() 
             if user:
                 send_manager_approval_email(user['email'], user['full_name'])
             flash("Successfully approved the Event Handler! Email sent.")
@@ -585,14 +597,14 @@ def admin_action(manager_id, action):
         elif action == 'reject':
             conn.execute("DELETE FROM manager_profiles WHERE user_id = ?", (manager_id,))
             conn.execute("DELETE FROM users WHERE id = ?", (manager_id,))
-            conn.commit() # Commit immediately after the delete
+            conn.commit() 
             flash("Event Handler request rejected.")
             
     except Exception as e:
-        conn.rollback() # Rollback if something goes wrong
+        conn.rollback() 
         flash(f"An error occurred: {str(e)}")
     finally: 
-        conn.close() # ALWAYS close the connection
+        conn.close() 
         
     return redirect(url_for('admin_dashboard'))
 
@@ -621,7 +633,6 @@ def reject_manager(user_id):
 def delete_user(user_id):
     if 'user_id' not in session or session['role'] != 'admin': return redirect(url_for('index'))
     conn = get_db_connection()
-    # Deleting the user automatically deletes related entries due to ON DELETE CASCADE
     conn.execute("DELETE FROM manager_profiles WHERE user_id = ?", (user_id,))
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
     conn.commit()

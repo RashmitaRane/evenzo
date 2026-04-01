@@ -38,9 +38,31 @@
         </ul>
       </li>
         <li><a href="#about">About</a></li>
-        <li>
-         <a href="javascript:void(0)" class="login-btn" id="openLogin">Login</a>
-        </li>
+        
+        {% if session.user_id %}
+          <li class="dropdown">
+            <a href="javascript:void(0)" class="dropbtn" style="display: flex; align-items: center; gap: 8px;">
+              <i class="fas fa-user-circle"></i>
+              <span>{{ session.user_name.split(' ')[0] }}</span>
+            </a>
+            <ul class="dropdown-content" style="min-width: 180px; left: auto; right: 0;">
+              <li>
+                <a href="{% if session.role == 'admin' %}{{ url_for('admin_dashboard') }}{% elif session.role == 'eventmanager' %}{{ url_for('dashboard') }}{% else %}{{ url_for('user_dashboard') }}{% endif %}">
+                  <i class="fas fa-th-large"></i> My Dashboard
+                </a>
+              </li>
+              <li>
+                <a href="{{ url_for('logout') }}" style="color: #d32f2f !important;">
+                  <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+              </li>
+            </ul>
+          </li>
+        {% else %}
+          <li>
+           <a href="javascript:void(0)" class="login-btn" id="openLogin">Login</a>
+          </li>
+        {% endif %}
       </ul>
     </div>
 
@@ -309,14 +331,19 @@
   const modal = document.getElementById('loginModal');
   const closeModal = document.querySelector('.close-modal');
 
-  loginBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.style.display = 'flex';
-  });
+  // SAFEGUARD: Only run if the login button is present
+  if(loginBtn) {
+      loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'flex';
+      });
+  }
 
-  closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
+  if(closeModal) {
+      closeModal.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+  }
 
   window.addEventListener('click', (e) => {
     if (e.target === modal) modal.style.display = 'none';
@@ -326,48 +353,62 @@
   const forgotModal = document.getElementById('forgotModal');
   const closeForgot = document.getElementById('closeForgot');
 
-  forgotLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.style.display = 'none';
-    forgotModal.style.display = 'flex';
-  });
+  if(forgotLink) {
+      forgotLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        if(modal) modal.style.display = 'none';
+        forgotModal.style.display = 'flex';
+      });
+  }
 
-  closeForgot.addEventListener('click', () => {
-    forgotModal.style.display = 'none';
-  });
+  if(closeForgot) {
+      closeForgot.addEventListener('click', () => {
+        forgotModal.style.display = 'none';
+      });
+  }
 
   const registerModal = document.getElementById('registerModal');
   const openRegister = document.querySelector('.register-text a');
   const closeRegister = document.getElementById('closeRegister');
   const backToLogin = document.getElementById('backToLogin');
 
-  openRegister.addEventListener('click', (e) => {
-    e.preventDefault();
-    modal.style.display = 'none';
-    registerModal.style.display = 'flex';
-  });
+  if(openRegister) {
+      openRegister.addEventListener('click', (e) => {
+        e.preventDefault();
+        if(modal) modal.style.display = 'none';
+        registerModal.style.display = 'flex';
+      });
+  }
 
-  backToLogin.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerModal.style.display = 'none';
-    modal.style.display = 'flex';
-  });
+  if(backToLogin) {
+      backToLogin.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerModal.style.display = 'none';
+        if(modal) modal.style.display = 'flex';
+      });
+  }
 
-  closeRegister.addEventListener('click', () => {
-    registerModal.style.display = 'none';
-  });
+  if(closeRegister) {
+      closeRegister.addEventListener('click', () => {
+        registerModal.style.display = 'none';
+      });
+  }
 
   const openRegisterFooter = document.getElementById('openRegisterFooter');
-  openRegisterFooter.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerModal.style.display = 'flex';
-  });
+  if(openRegisterFooter) {
+      openRegisterFooter.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerModal.style.display = 'flex';
+      });
+  }
 
   const openRegisterAdminFooter = document.getElementById('openRegisterAdminFooter');
-  openRegisterAdminFooter.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerModal.style.display = 'flex';
-  });
+  if(openRegisterAdminFooter) {
+      openRegisterAdminFooter.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerModal.style.display = 'flex';
+      });
+  }
 
   const registerForm = document.getElementById('registerForm');
   const roleRadios = document.querySelectorAll('input[name="regUserRole"]');
@@ -394,29 +435,33 @@
     });
   });
 
-  regLicenseInput.addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
-        this.value = '';
-        regFileName.textContent = '';
-      } else {
-        regFileName.textContent = `✓ ${file.name}`;
-      }
-    }
-  });
+  if(regLicenseInput) {
+      regLicenseInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            this.value = '';
+            regFileName.textContent = '';
+          } else {
+            regFileName.textContent = `✓ ${file.name}`;
+          }
+        }
+      });
+  }
 
-  registerForm.addEventListener('submit', (e) => {
-    const password = document.getElementById('regPass').value;
-    const confirm = document.getElementById('confirmPass').value;
+  if(registerForm) {
+      registerForm.addEventListener('submit', (e) => {
+        const password = document.getElementById('regPass').value;
+        const confirm = document.getElementById('confirmPass').value;
 
-    if (password !== confirm) {
-      e.preventDefault();
-      alert("Passwords do not match! Please try again.");
-      return;
-    }
-  });
+        if (password !== confirm) {
+          e.preventDefault();
+          alert("Passwords do not match! Please try again.");
+          return;
+        }
+      });
+  }
 
   document.querySelectorAll('.toggle-password').forEach(icon => {
     icon.addEventListener('click', function() {
@@ -433,7 +478,7 @@
 
   update(1);
 
-  // NEW: Flash Message Auto-Hide Logic
+  // Flash Message Auto-Hide Logic
   document.addEventListener('DOMContentLoaded', function() {
     const alerts = document.querySelectorAll('.flash-alert');
     if(alerts.length > 0) {

@@ -8,7 +8,6 @@
     <style>
         :root { --primary: #953553; --bg-light: #f8f9fa; --sidebar-width: 260px; --text-dark: #333; }
         
-        /* UNIFIED LAYOUT */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-light); display: flex; min-height: 100vh; padding-bottom: 80px; } 
         
@@ -19,10 +18,39 @@
         .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
         .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         
-        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; }
+        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 40px; overflow-x: hidden; }
 
-        header { margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        /* 🟢 Unified Top Bar & Notification System CSS */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #eee; }
+        header { margin: 0; }
         .welcome-text h1 { color: var(--primary); font-size: 28px; margin-bottom: 5px; }
+
+        .notification-wrapper { position: relative; display: inline-block; cursor: pointer; padding: 10px; }
+        .notification-icon { font-size: 26px; color: var(--primary); transition: 0.3s; }
+        .notification-wrapper:hover .notification-icon { transform: scale(1.1); }
+        .notification-badge { position: absolute; top: 5px; right: 5px; background: #d32f2f; color: white; font-size: 12px; font-weight: bold; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid var(--bg-light); transition: 0.3s; }
+        
+        .notification-dropdown { position: absolute; top: 50px; right: 0; background: white; width: 340px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; flex-direction: column; z-index: 2000; overflow: hidden; border: 1px solid #eee; cursor: default; }
+        .notification-dropdown.show { display: flex; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .notif-header { padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--primary); background: #fdf5f7; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-clear-all { background: none; border: none; color: #d32f2f; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s; padding: 5px 8px; border-radius: 4px; }
+        .btn-clear-all:hover { background: rgba(211, 47, 47, 0.1); }
+        
+        .notif-body { max-height: 300px; overflow-y: auto; overflow-x: hidden; }
+        .notif-item { position: relative; padding: 15px; padding-right: 40px; border-bottom: 1px solid #eee; display: flex; align-items: flex-start; gap: 12px; transition: background 0.2s, transform 0.3s ease, opacity 0.3s ease; text-decoration: none; color: #333; cursor: pointer; }
+        .notif-item:hover { background: #fafafa; }
+        .notif-item i.status-icon { font-size: 22px; margin-top: 3px; }
+        .notif-item .success-icon { color: #2e7d32; }
+        .notif-item .danger-icon { color: #d32f2f; }
+        .notif-text { font-size: 13px; line-height: 1.5; }
+        .notif-text strong { color: var(--primary); }
+        .notif-empty { padding: 25px; text-align: center; color: #888; font-size: 14px; font-style: italic; }
+
+        .notif-close-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #aaa; font-size: 18px; cursor: pointer; opacity: 0; transition: 0.3s; padding: 5px; }
+        .notif-item:hover .notif-close-btn { opacity: 1; }
+        .notif-close-btn:hover { color: #d32f2f; transform: translateY(-50%) scale(1.2); }
 
         /* Filter Bar Styling */
         .filter-bar { display: flex; gap: 20px; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; flex-wrap: wrap; }
@@ -41,6 +69,12 @@
         .image-wrapper:hover .vc-image { transform: scale(1.05); }
         .image-count-badge { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; pointer-events: none; }
 
+        /* Wishlist Heart Button CSS */
+        .wishlist-btn { position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.9); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.3s; color: #ccc; font-size: 18px; }
+        .wishlist-btn:hover { transform: scale(1.15); background: white; }
+        .wishlist-btn.saved { color: var(--primary); }
+        .wishlist-btn.saved i { font-weight: 900; }
+
         .vc-body { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
         .vc-category { font-size: 12px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .vc-title { font-size: 18px; color: var(--primary); font-weight: bold; margin-bottom: 10px; line-height: 1.3; }
@@ -51,11 +85,9 @@
 
         .vc-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; border-top: 1px solid #eee; padding-top: 15px; }
         
-        /* 🟢 Custom Styled properly so the link looks exactly like a button */
         .btn-book { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; text-decoration: none; text-align: center; display: inline-block; }
         .btn-book:hover { opacity: 0.9; }
         
-        /* Compare Checkbox */
         .compare-label { display: flex; align-items: center; gap: 5px; font-size: 14px; color: #555; cursor: pointer; font-weight: 600; }
         .compare-label input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary); }
 
@@ -96,6 +128,7 @@
         <nav class="nav-menu">
             <a href="{{ url_for('user_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> My Dashboard</a>
             <a href="{{ url_for('explore') }}" class="nav-item active"><i class="fas fa-search"></i> Find Vendors</a>
+            <a href="{{ url_for('index') }}" class="nav-item"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </nav>
         <div class="logout-container">
             <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -103,12 +136,53 @@
     </div>
 
     <div class="main-content">
-        <header>
-            <div class="welcome-text">
-                <h1>Find the Perfect Event Handler</h1>
-                <p>Search, filter, and compare vendors to find the best match for your event.</p>
+        
+        <div class="top-bar">
+            <header>
+                <div class="welcome-text">
+                    <h1>Find the Perfect Event Handler</h1>
+                    <p style="color: #666; font-size: 16px;">Search, filter, and compare vendors to find the best match for your event.</p>
+                </div>
+            </header>
+
+            <div class="notification-wrapper" onclick="toggleNotifications(event)">
+                <i class="fas fa-bell notification-icon"></i>
+                
+                {% set notifications = bookings|selectattr('status', 'in', ['confirmed', 'rejected'])|list if bookings else [] %}
+                
+                <div class="notification-badge" id="main-notif-badge" style="display: none;">0</div>
+                
+                <div class="notification-dropdown" id="notifDropdown" onclick="event.stopPropagation()">
+                    <div class="notif-header">
+                        <div>
+                            <span>Notifications</span>
+                            <span id="notif-header-count" style="background: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; border: 1px solid #ddd; color: #555; margin-left: 8px;">0</span>
+                        </div>
+                        <button id="clearAllBtn" class="btn-clear-all" onclick="clearAllNotifications(event)">
+                            Clear All
+                        </button>
+                    </div>
+                    <div class="notif-body" id="notifListContainer">
+                        {% for notif in notifications %}
+                            <a href="{{ url_for('user_dashboard') }}" class="notif-item" data-booking-id="{{ notif.id }}">
+                                {% if notif.status == 'confirmed' %}
+                                    <i class="fas fa-check-circle status-icon success-icon"></i>
+                                {% else %}
+                                    <i class="fas fa-times-circle status-icon danger-icon"></i>
+                                {% endif %}
+                                <div class="notif-text">
+                                    Your booking request for <strong>{{ notif.business_name }}</strong> on <em>{{ notif.event_date }}</em> was <span style="font-weight:bold; color: {{ '#2e7d32' if notif.status == 'confirmed' else '#d32f2f' }};">{{ notif.status }}</span>.
+                                </div>
+                                
+                                <button class="notif-close-btn" onclick="dismissNotification(event, this)" title="Clear notification">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
             </div>
-        </header>
+        </div>
 
         <div class="filter-bar">
             <div class="filter-group">
@@ -143,10 +217,25 @@
             <div class="vendor-card" data-category="{{ service.category }}" data-service="{{ service.services_offered }}">
                 
                 <div class="image-wrapper" onclick="openSlider('{{ service.images }}', 0)" title="Click to view full portfolio gallery">
+                    
                     {% set raw_imgs = service.images.split(',') if service.images else [] %}
                     {% set clean_imgs = raw_imgs | reject('equalto', '') | list %}
                     {% set total_imgs = clean_imgs|length %}
                     
+                    <div class="wishlist-btn" onclick="toggleSaveVendor(event, this)" title="Save to Wishlist"
+                         data-id="{{ service.id }}"
+                         data-business="{{ service.business_name }}"
+                         data-title="{{ service.service_name }}"
+                         data-category="{{ service.category }}"
+                         data-service="{{ service.services_offered }}"
+                         data-package="{{ service.package_tier }}"
+                         data-price="₹{{ service.pricing }}"
+                         data-exp="{{ service.experience_years }} Years"
+                         data-loc="{{ service.service_location }}"
+                         data-img="{{ url_for('uploaded_file', filename=clean_imgs[0]) if total_imgs > 0 else '' }}">
+                        <i class="far fa-heart"></i>
+                    </div>
+
                     {% if total_imgs > 0 %}
                         <img src="{{ url_for('uploaded_file', filename=clean_imgs[0]) }}" class="vc-image" alt="Portfolio Image">
                         {% if total_imgs > 1 %}
@@ -226,7 +315,155 @@
     </div>
 
     <script>
-        // --- 1. SLIDER LOGIC ---
+        const userId = "{{ session.user_id }}";
+
+        // 🟢 NOTIFICATIONS PERSISTENCE LOGIC
+        const notifStorageKey = `evenzo_dismissed_notifs_${userId}`;
+
+        function getDismissedNotifs() {
+            return JSON.parse(localStorage.getItem(notifStorageKey) || "[]");
+        }
+
+        function saveDismissedNotif(id) {
+            let dismissed = getDismissedNotifs();
+            if (!dismissed.includes(String(id))) {
+                dismissed.push(String(id));
+                localStorage.setItem(notifStorageKey, JSON.stringify(dismissed));
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            // Clean up dismissed notifications immediately on load
+            const dismissed = getDismissedNotifs();
+            document.querySelectorAll('.notif-item').forEach(item => {
+                if (dismissed.includes(item.dataset.bookingId)) {
+                    item.remove();
+                }
+            });
+            updateNotificationCounts();
+        });
+
+        function toggleNotifications(event) {
+            event.stopPropagation();
+            document.getElementById('notifDropdown').classList.toggle('show');
+        }
+
+        function closeNotifications() {
+            const dropdown = document.getElementById('notifDropdown');
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+            }
+        }
+
+        window.addEventListener('click', closeNotifications);
+
+        function dismissNotification(event, btnElement) {
+            event.preventDefault(); 
+            event.stopPropagation(); 
+            
+            const notifItem = btnElement.closest('.notif-item');
+            const bookingId = notifItem.dataset.bookingId;
+            
+            saveDismissedNotif(bookingId); // Save to LocalStorage
+            
+            notifItem.style.transform = 'translateX(100%)';
+            notifItem.style.opacity = '0';
+            
+            setTimeout(() => {
+                notifItem.remove();
+                updateNotificationCounts();
+            }, 300);
+        }
+        
+        function clearAllNotifications(event) {
+            event.stopPropagation();
+            const container = document.getElementById('notifListContainer');
+            const items = container.querySelectorAll('.notif-item');
+            
+            items.forEach(item => {
+                saveDismissedNotif(item.dataset.bookingId); // Save to LocalStorage
+                item.style.transform = 'translateX(100%)';
+                item.style.opacity = '0';
+            });
+            
+            setTimeout(() => {
+                items.forEach(item => item.remove());
+                updateNotificationCounts();
+            }, 300);
+        }
+
+        function updateNotificationCounts() {
+            const items = document.querySelectorAll('.notif-item');
+            const count = items.length;
+            
+            const headerCount = document.getElementById('notif-header-count');
+            if (headerCount) headerCount.innerText = count;
+
+            const badge = document.getElementById('main-notif-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.style.display = 'flex';
+                    badge.innerText = count;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            const clearAllBtn = document.getElementById('clearAllBtn');
+            if (clearAllBtn) {
+                clearAllBtn.style.display = count > 0 ? 'block' : 'none';
+            }
+
+            if (count === 0) {
+                document.getElementById('notifListContainer').innerHTML = `
+                    <div class="notif-empty">
+                        <i class="fas fa-bell-slash" style="font-size: 30px; color: #ddd; margin-bottom: 10px;"></i><br>
+                        No recent updates from vendors.
+                    </div>
+                `;
+            }
+        }
+
+        // 🟢 WISHLIST / SAVE VENDOR LOGIC
+        const storageKey = `evenzo_saved_vendors_${userId}`;
+
+        function getSavedVendors() {
+            return JSON.parse(localStorage.getItem(storageKey) || "[]");
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const saved = getSavedVendors();
+            const savedIds = saved.map(v => String(v.id));
+            
+            document.querySelectorAll('.wishlist-btn').forEach(btn => {
+                if (savedIds.includes(btn.dataset.id)) {
+                    btn.classList.add('saved');
+                    btn.querySelector('i').classList.replace('far', 'fas');
+                }
+            });
+        });
+
+        function toggleSaveVendor(event, btn) {
+            event.stopPropagation(); 
+            
+            const vendorData = { ...btn.dataset };
+            let saved = getSavedVendors();
+            const index = saved.findIndex(v => String(v.id) === String(vendorData.id));
+
+            if (index > -1) {
+                saved.splice(index, 1); 
+                btn.classList.remove('saved');
+                btn.querySelector('i').classList.replace('fas', 'far');
+            } else {
+                saved.push(vendorData); 
+                btn.classList.add('saved');
+                btn.querySelector('i').classList.replace('far', 'fas');
+            }
+            
+            localStorage.setItem(storageKey, JSON.stringify(saved));
+        }
+
+        // 🟢 SLIDER LOGIC
         let sliderImagesArray = [];
         let currentSliderIndex = 0;
 
@@ -244,7 +481,6 @@
         function updateSliderView() {
             const imgEl = document.getElementById('fullSizeImage');
             imgEl.src = "/uploads/" + sliderImagesArray[currentSliderIndex].trim();
-            
             document.getElementById('imageCounterText').innerText = `${currentSliderIndex + 1} of ${sliderImagesArray.length}`;
 
             const showArrows = sliderImagesArray.length > 1 ? 'flex' : 'none';
@@ -254,29 +490,18 @@
 
         function slideImage(direction, event) {
             if (event) event.stopPropagation(); 
-            
             currentSliderIndex += direction;
-            
-            if (currentSliderIndex < 0) {
-                currentSliderIndex = sliderImagesArray.length - 1;
-            } else if (currentSliderIndex >= sliderImagesArray.length) {
-                currentSliderIndex = 0;
-            }
-            
+            if (currentSliderIndex < 0) currentSliderIndex = sliderImagesArray.length - 1;
+            else if (currentSliderIndex >= sliderImagesArray.length) currentSliderIndex = 0;
             updateSliderView();
         }
 
         function closeImageViewer(e) {
-            if (e.target.id === 'imageViewerModal') {
-                document.getElementById('imageViewerModal').style.display = 'none';
-            }
+            if (e.target.id === 'imageViewerModal') { document.getElementById('imageViewerModal').style.display = 'none'; }
         }
-        function forceCloseSlider() {
-            document.getElementById('imageViewerModal').style.display = 'none';
-        }
+        function forceCloseSlider() { document.getElementById('imageViewerModal').style.display = 'none'; }
 
-
-        // --- 2. SEARCH & FILTER LOGIC ---
+        // 🟢 SEARCH & FILTER LOGIC
         function filterVendors() {
             let searchInput = document.getElementById('searchInput').value.toLowerCase();
             let catFilter = document.getElementById('categoryFilter').value.toLowerCase();
@@ -305,7 +530,7 @@
             document.getElementById('noMatchesMsg').style.display = visibleCount === 0 ? 'block' : 'none';
         }
 
-        // --- 3. COMPARISON ENGINE LOGIC ---
+        // 🟢 COMPARISON ENGINE LOGIC
         const checkboxes = document.querySelectorAll('.compare-checkbox');
         const compareBar = document.getElementById('compareBar');
         const compareCountText = document.getElementById('compareCountText');
@@ -348,45 +573,24 @@
 
         function openCompareModal() {
             const container = document.getElementById('compareTableContainer');
+            let tableHTML = `<table class="compare-table"><thead><tr><th style="background: white;"></th>`;
             
-            let tableHTML = `<table class="compare-table">
-                <thead><tr><th style="background: white;"></th>`;
-            
+            selectedVendors.forEach(v => { tableHTML += `<th>${v.business}</th>`; });
+            tableHTML += `</tr></thead><tbody><tr><td class="feature-title">Package / Title</td>`;
             selectedVendors.forEach(v => {
-                tableHTML += `<th>${v.business}</th>`;
+                tableHTML += `<td>${v.img ? `<img src="${v.img}" class="compare-img">` : ''}<br><strong>${v.title}</strong></td>`;
             });
-            tableHTML += `</tr></thead><tbody>`;
-
-            tableHTML += `<tr><td class="feature-title">Package / Title</td>`;
-            selectedVendors.forEach(v => {
-                tableHTML += `<td>
-                    ${v.img ? `<img src="${v.img}" class="compare-img">` : ''}<br>
-                    <strong>${v.title}</strong>
-                </td>`;
-            });
-            tableHTML += `</tr>`;
-
-            tableHTML += `<tr><td class="feature-title">Core Service</td>`;
+            tableHTML += `</tr><tr><td class="feature-title">Core Service</td>`;
             selectedVendors.forEach(v => tableHTML += `<td>${v.service}</td>`);
-            tableHTML += `</tr>`;
-
-            tableHTML += `<tr><td class="feature-title">Package Tier</td>`;
+            tableHTML += `</tr><tr><td class="feature-title">Package Tier</td>`;
             selectedVendors.forEach(v => tableHTML += `<td><span style="font-weight: bold; color: var(--primary);">${v.package}</span></td>`);
-            tableHTML += `</tr>`;
-
-            tableHTML += `<tr><td class="feature-title">Starting Price</td>`;
+            tableHTML += `</tr><tr><td class="feature-title">Starting Price</td>`;
             selectedVendors.forEach(v => tableHTML += `<td style="color: var(--primary); font-weight: bold; font-size: 18px;">${v.price}</td>`);
-            tableHTML += `</tr>`;
-
-            tableHTML += `<tr><td class="feature-title">Experience</td>`;
+            tableHTML += `</tr><tr><td class="feature-title">Experience</td>`;
             selectedVendors.forEach(v => tableHTML += `<td>${v.exp}</td>`);
-            tableHTML += `</tr>`;
-
-            tableHTML += `<tr><td class="feature-title">Location</td>`;
+            tableHTML += `</tr><tr><td class="feature-title">Location</td>`;
             selectedVendors.forEach(v => tableHTML += `<td>${v.loc}</td>`);
-            tableHTML += `</tr>`;
-
-            tableHTML += `</tbody></table>`;
+            tableHTML += `</tr></tbody></table>`;
             
             container.innerHTML = tableHTML;
             document.getElementById('compareModal').style.display = 'flex';

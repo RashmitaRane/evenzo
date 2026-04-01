@@ -887,6 +887,14 @@ span {
     padding: 0;
     display: inline-block;
 }
+.dropbtn span {
+    font-family: 'Times New Roman', serif;
+    font-size: 23px;
+    font-weight: 700;
+}
+.dropbtn i {
+    font-size: 24px;
+}
 .dropdown::after {
     content: "";
     position: absolute;
