@@ -410,7 +410,6 @@ def vendor_details(service_id):
         ORDER BY r.rating DESC, r.created_at DESC
     ''', (service['manager_id'],)).fetchall()
 
-    # STRICT CHECK: Only 'confirmed' AND 'paid' users can review
     check_booking = conn.execute('''
         SELECT id FROM bookings 
         WHERE client_id = ? AND service_id = ? AND status = 'confirmed' AND payment_status = 'paid'
@@ -455,7 +454,6 @@ def submit_review():
     flash("Thank you for your review!")
     return redirect(url_for('vendor_details', service_id=service_id))
 
-# 🟢 NEW: EDIT REVIEW ROUTE
 @app.route('/edit_review/<int:review_id>', methods=['POST'])
 def edit_review(review_id):
     if 'user_id' not in session: return redirect(url_for('index'))
@@ -466,7 +464,6 @@ def edit_review(review_id):
     
     conn = get_db_connection()
     
-    # 1. Ensure the user editing the review actually owns it
     review = conn.execute("SELECT manager_id FROM reviews WHERE id = ? AND client_id = ?", (review_id, session['user_id'])).fetchone()
     if not review:
         conn.close()
@@ -475,10 +472,8 @@ def edit_review(review_id):
         
     manager_id = review['manager_id']
     
-    # 2. Update the review
     conn.execute("UPDATE reviews SET rating = ?, review_text = ? WHERE id = ?", (new_rating, new_text, review_id))
     
-    # 3. Recalculate average manager rating
     avg_rating = conn.execute('SELECT AVG(rating) FROM reviews WHERE manager_id = ?', (manager_id,)).fetchone()[0]
     conn.execute('UPDATE manager_profiles SET rating = ? WHERE user_id = ?', (round(avg_rating, 1), manager_id))
     
@@ -488,7 +483,6 @@ def edit_review(review_id):
     flash("Review updated successfully!")
     return redirect(url_for('vendor_details', service_id=service_id))
 
-# 🟢 NEW: DELETE REVIEW ROUTE
 @app.route('/delete_review/<int:review_id>', methods=['POST'])
 def delete_review(review_id):
     if 'user_id' not in session: return redirect(url_for('index'))
@@ -496,7 +490,6 @@ def delete_review(review_id):
     service_id = request.form.get('service_id')
     conn = get_db_connection()
     
-    # 1. Ensure ownership
     review = conn.execute("SELECT manager_id FROM reviews WHERE id = ? AND client_id = ?", (review_id, session['user_id'])).fetchone()
     if not review:
         conn.close()
@@ -505,10 +498,8 @@ def delete_review(review_id):
         
     manager_id = review['manager_id']
     
-    # 2. Delete review
     conn.execute("DELETE FROM reviews WHERE id = ?", (review_id,))
     
-    # 3. Recalculate average manager rating (handles case where 0 reviews are left)
     avg_rating_row = conn.execute('SELECT AVG(rating) FROM reviews WHERE manager_id = ?', (manager_id,)).fetchone()
     avg_rating = avg_rating_row[0] if avg_rating_row[0] is not None else 0.0
     conn.execute('UPDATE manager_profiles SET rating = ? WHERE user_id = ?', (round(avg_rating, 1), manager_id))
@@ -613,8 +604,9 @@ def admin_dashboard():
         
     conn = get_db_connection()
     
+    # 🟢 MODIFIED: Added m.phone and m.license_path to the query
     pending_managers = conn.execute('''
-        SELECT u.id, u.full_name, u.email, m.business_name 
+        SELECT u.id, u.full_name, u.email, m.business_name, m.phone, m.license_path
         FROM users u 
         JOIN manager_profiles m ON u.id = m.user_id 
         WHERE u.role = 'eventmanager' AND u.is_approved = 0
@@ -646,10 +638,13 @@ def admin_users():
         return redirect(url_for('index'))
         
     conn = get_db_connection()
+    
+    # 🟢 MODIFIED: Added Left join to pull profile details (business_name, phone, license_path)
     all_users = conn.execute('''
-        SELECT id, full_name, email, role, is_approved 
-        FROM users 
-        WHERE role != 'admin'
+        SELECT u.id, u.full_name, u.email, u.role, u.is_approved, m.business_name, m.phone, m.license_path
+        FROM users u 
+        LEFT JOIN manager_profiles m ON u.id = m.user_id
+        WHERE u.role != 'admin'
     ''').fetchall()
     conn.close()
     
@@ -752,7 +747,6 @@ def send_manager_approval_email(manager_email, manager_name):
 @app.route('/public_explore')
 def public_explore():
     conn = get_db_connection()
-    # Fetch all services to display to the public
     all_services = conn.execute('SELECT s.*, m.business_name, m.profile_pic FROM services s JOIN manager_profiles m ON s.manager_id = m.user_id').fetchall()
     conn.close()
     return render_template('public_explore.html', services=all_services)
@@ -760,8 +754,6 @@ def public_explore():
 @app.route('/public_vendor_details/<int:service_id>')
 def public_vendor_details(service_id):
     conn = get_db_connection()
-    
-    # Fetch Service and Manager Details
     service = conn.execute('''
         SELECT s.*, m.business_name, m.rating, u.full_name as manager_name, m.phone 
         FROM services s 
@@ -770,7 +762,6 @@ def public_vendor_details(service_id):
         WHERE s.id = ?
     ''', (service_id,)).fetchone()
     
-    # Fetch Reviews
     reviews = conn.execute('''
         SELECT r.*, u.full_name as client_name 
         FROM reviews r 
