@@ -1,0 +1,344 @@
+<!-- Evenzo AI Chatbot Widget -->
+<div id="evenzoChatWidgetContainer">
+  <!-- Floating Chat Toggle Button -->
+  <button id="chatToggleBtn" class="chat-toggle-btn" title="Chat with Evenzo AI" aria-label="Chat with Evenzo AI">
+    <div class="chat-btn-icon">
+      <svg class="evenzo-ai-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="aiGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#FFD700" />
+            <stop offset="100%" stop-color="#FFA500" />
+          </linearGradient>
+          <linearGradient id="aiBotGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#FFFFFF" />
+            <stop offset="100%" stop-color="#F5E6EB" />
+          </linearGradient>
+        </defs>
+        <path d="M32 6V12" stroke="url(#aiGoldGrad)" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="5" r="3.5" fill="url(#aiGoldGrad)"/>
+        <rect x="8" y="24" width="6" height="16" rx="3" fill="url(#aiGoldGrad)"/>
+        <rect x="50" y="24" width="6" height="16" rx="3" fill="url(#aiGoldGrad)"/>
+        <path d="M12 26C12 16.0589 20.0589 8 32 8C43.9411 8 52 16.0589 52 26" stroke="url(#aiGoldGrad)" stroke-width="3.5" stroke-linecap="round"/>
+        <rect x="12" y="16" width="40" height="32" rx="12" fill="url(#aiBotGrad)" stroke="#953553" stroke-width="2.5"/>
+        <rect x="18" y="22" width="28" height="14" rx="7" fill="#953553"/>
+        <circle cx="25" cy="29" r="3.5" fill="#FFD700"/>
+        <circle cx="39" cy="29" r="3.5" fill="#FFD700"/>
+        <circle cx="26" cy="28" r="1" fill="#FFFFFF"/>
+        <circle cx="40" cy="28" r="1" fill="#FFFFFF"/>
+        <path d="M26 38C26 38 29 41 32 41C35 41 38 38 38 38" stroke="#953553" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M48 10L49.5 13L52.5 14.5L49.5 16L48 19L46.5 16L43.5 14.5L46.5 13L48 10Z" fill="#FFD700"/>
+      </svg>
+    </div>
+    <span class="chat-btn-pulse"></span>
+    <span class="chat-badge-text">Evenzo AI</span>
+  </button>
+
+  <!-- Chat Window -->
+  <div id="evenzoChatWindow" class="chat-window" aria-label="Evenzo AI Chat Window">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="chat-header-info">
+        <div class="chat-avatar">
+          <svg class="evenzo-ai-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <use href="#aiGoldGrad"/>
+            <path d="M32 6V12" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="32" cy="5" r="3.5" fill="#FFD700"/>
+            <rect x="8" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+            <rect x="50" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+            <path d="M12 26C12 16.0589 20.0589 8 32 8C43.9411 8 52 16.0589 52 26" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+            <rect x="12" y="16" width="40" height="32" rx="12" fill="#FFFFFF" stroke="#953553" stroke-width="2.5"/>
+            <rect x="18" y="22" width="28" height="14" rx="7" fill="#953553"/>
+            <circle cx="25" cy="29" r="3.5" fill="#FFD700"/>
+            <circle cx="39" cy="29" r="3.5" fill="#FFD700"/>
+            <circle cx="26" cy="28" r="1" fill="#FFFFFF"/>
+            <circle cx="40" cy="28" r="1" fill="#FFFFFF"/>
+            <path d="M26 38C26 38 29 41 32 41C35 41 38 38 38 38" stroke="#953553" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M48 10L49.5 13L52.5 14.5L49.5 16L48 19L46.5 16L43.5 14.5L46.5 13L48 10Z" fill="#FFD700"/>
+          </svg>
+        </div>
+        <div>
+          <h4 class="chat-title">Evenzo AI</h4>
+          <span class="chat-status"><span class="status-dot"></span> Online &bull; Event Assistant</span>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button id="clearChatBtn" class="chat-header-btn" title="Clear Chat" aria-label="Clear Chat Window"><i class="fas fa-trash-alt"></i></button>
+        <button id="closeChatBtn" class="chat-header-btn" title="Close" aria-label="Close Chat Window"><i class="fas fa-times"></i></button>
+      </div>
+    </div>
+
+    <!-- Quick Suggestion Chips Container -->
+    <div class="chat-suggestions-wrapper">
+      <div class="chat-suggestions-label"><i class="fas fa-lightbulb"></i> Suggested Questions:</div>
+      <div id="chatChipsContainer" class="chat-chips-container">
+        <!-- Dynamically filled via JS -->
+      </div>
+    </div>
+
+    <!-- Chat Messages Body -->
+    <div id="chatMessages" class="chat-messages">
+      <!-- Welcome Message -->
+      <div class="chat-msg bot-msg">
+        <div class="msg-avatar">
+          <svg class="evenzo-ai-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M32 6V12" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="32" cy="5" r="3.5" fill="#FFD700"/>
+            <rect x="8" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+            <rect x="50" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+            <path d="M12 26C12 16.0589 20.0589 8 32 8C43.9411 8 52 16.0589 52 26" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+            <rect x="12" y="16" width="40" height="32" rx="12" fill="#FFFFFF" stroke="#953553" stroke-width="2.5"/>
+            <rect x="18" y="22" width="28" height="14" rx="7" fill="#953553"/>
+            <circle cx="25" cy="29" r="3.5" fill="#FFD700"/>
+            <circle cx="39" cy="29" r="3.5" fill="#FFD700"/>
+            <circle cx="26" cy="28" r="1" fill="#FFFFFF"/>
+            <circle cx="40" cy="28" r="1" fill="#FFFFFF"/>
+            <path d="M26 38C26 38 29 41 32 41C35 41 38 38 38 38" stroke="#953553" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M48 10L49.5 13L52.5 14.5L49.5 16L48 19L46.5 16L43.5 14.5L46.5 13L48 10Z" fill="#FFD700"/>
+          </svg>
+        </div>
+        <div class="msg-bubble">
+          Hi! 👋 I’m <b>Evenzo AI</b>. How can I help you plan your perfect event?
+          <div class="msg-time">Just now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div id="chatTypingIndicator" class="chat-typing-indicator" style="display: none;">
+      <div class="msg-avatar">
+        <svg class="evenzo-ai-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M32 6V12" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="32" cy="5" r="3.5" fill="#FFD700"/>
+          <rect x="8" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+          <rect x="50" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+          <path d="M12 26C12 16.0589 20.0589 8 32 8C43.9411 8 52 16.0589 52 26" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+          <rect x="12" y="16" width="40" height="32" rx="12" fill="#FFFFFF" stroke="#953553" stroke-width="2.5"/>
+          <rect x="18" y="22" width="28" height="14" rx="7" fill="#953553"/>
+          <circle cx="25" cy="29" r="3.5" fill="#FFD700"/>
+          <circle cx="39" cy="29" r="3.5" fill="#FFD700"/>
+          <circle cx="26" cy="28" r="1" fill="#FFFFFF"/>
+          <circle cx="40" cy="28" r="1" fill="#FFFFFF"/>
+          <path d="M26 38C26 38 29 41 32 41C35 41 38 38 38 38" stroke="#953553" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M48 10L49.5 13L52.5 14.5L49.5 16L48 19L46.5 16L43.5 14.5L46.5 13L48 10Z" fill="#FFD700"/>
+        </svg>
+      </div>
+      <div class="typing-dots">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="chat-footer">
+      <form id="chatForm" onsubmit="return false;">
+        <input type="text" id="chatInput" placeholder="Ask Evenzo AI anything about events..." autocomplete="off" />
+        <button type="submit" id="chatSendBtn" class="chat-send-btn" title="Send Message" aria-label="Send Message">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const toggleBtn = document.getElementById('chatToggleBtn');
+  const chatWindow = document.getElementById('evenzoChatWindow');
+  const closeBtn = document.getElementById('closeChatBtn');
+  const clearBtn = document.getElementById('clearChatBtn');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const chatMessages = document.getElementById('chatMessages');
+  const typingIndicator = document.getElementById('chatTypingIndicator');
+  const chipsContainer = document.getElementById('chatChipsContainer');
+
+  const botAvatarSvgHtml = `
+    <svg class="evenzo-ai-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M32 6V12" stroke="#FFD700" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="32" cy="5" r="3.5" fill="#FFD700"/>
+      <rect x="8" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+      <rect x="50" y="24" width="6" height="16" rx="3" fill="#FFD700"/>
+      <path d="M12 26C12 16.0589 20.0589 8 32 8C43.9411 8 52 16.0589 52 26" stroke="#FFD700" stroke-width="3.5" stroke-linecap="round"/>
+      <rect x="12" y="16" width="40" height="32" rx="12" fill="#FFFFFF" stroke="#953553" stroke-width="2.5"/>
+      <rect x="18" y="22" width="28" height="14" rx="7" fill="#953553"/>
+      <circle cx="25" cy="29" r="3.5" fill="#FFD700"/>
+      <circle cx="39" cy="29" r="3.5" fill="#FFD700"/>
+      <circle cx="26" cy="28" r="1" fill="#FFFFFF"/>
+      <circle cx="40" cy="28" r="1" fill="#FFFFFF"/>
+      <path d="M26 38C26 38 29 41 32 41C35 41 38 38 38 38" stroke="#953553" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M48 10L49.5 13L52.5 14.5L49.5 16L48 19L46.5 16L43.5 14.5L46.5 13L48 10Z" fill="#FFD700"/>
+    </svg>`;
+
+  let isLoadedChips = false;
+
+  // Toggle Chat Window
+  toggleBtn.addEventListener('click', () => {
+    chatWindow.classList.toggle('open');
+    toggleBtn.classList.toggle('active', chatWindow.classList.contains('open'));
+    if (chatWindow.classList.contains('open')) {
+      chatInput.focus();
+      if (!isLoadedChips) loadSuggestionChips();
+    }
+  });
+
+  closeBtn.addEventListener('click', () => {
+    chatWindow.classList.remove('open');
+    toggleBtn.classList.remove('active');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    chatMessages.innerHTML = `
+      <div class="chat-msg bot-msg">
+        <div class="msg-avatar">${botAvatarSvgHtml}</div>
+        <div class="msg-bubble">
+          Chat cleared. How can <b>Evenzo AI</b> help you next? 👋
+          <div class="msg-time">Just now</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // Load Suggestion Chips from Backend
+  async function loadSuggestionChips() {
+    try {
+      const res = await fetch('/api/chatbot/questions');
+      if (!res.ok) return;
+      const questions = await res.json();
+      renderChips(questions);
+      isLoadedChips = true;
+    } catch (e) {
+      console.log('Error loading chatbot chips:', e);
+    }
+  }
+
+  function renderChips(questions) {
+    if (!questions || !questions.length) {
+      chipsContainer.innerHTML = '<span class="chip-item-static">Ask about Vendors, Booking, Pricing...</span>';
+      return;
+    }
+    chipsContainer.innerHTML = '';
+    questions.slice(0, 6).forEach(q => {
+      const chip = document.createElement('button');
+      chip.className = 'chat-chip';
+      chip.type = 'button';
+      chip.innerText = q.question;
+      chip.addEventListener('click', () => {
+        sendQuestionById(q.id, q.question);
+      });
+      chipsContainer.appendChild(chip);
+    });
+  }
+
+  // Handle Form Submit
+  chatForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = chatInput.value.trim();
+    if (!text) return;
+    sendMessage(text);
+  });
+
+  async function sendMessage(userMsg) {
+    appendUserMessage(userMsg);
+    chatInput.value = '';
+    showTyping(true);
+
+    try {
+      const res = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg })
+      });
+      const data = await res.json();
+      showTyping(false);
+
+      if (data && data.answer) {
+        appendBotMessage(data.answer, data.action, data.suggested_questions);
+      } else {
+        appendBotMessage("I'm sorry, I couldn't process your request right now. Please try again!");
+      }
+    } catch (err) {
+      showTyping(false);
+      appendBotMessage("Connecting issue. Please check your connection and try again.");
+    }
+  }
+
+  async function sendQuestionById(qId, qQuestion) {
+    appendUserMessage(qQuestion);
+    showTyping(true);
+
+    try {
+      const res = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question_id: qId })
+      });
+      const data = await res.json();
+      showTyping(false);
+
+      if (data && data.answer) {
+        appendBotMessage(data.answer, data.action, data.suggested_questions);
+      } else {
+        appendBotMessage("Thank you for asking!");
+      }
+    } catch (err) {
+      showTyping(false);
+      appendBotMessage("Connecting issue. Please try again.");
+    }
+  }
+
+  function appendUserMessage(text) {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const div = document.createElement('div');
+    div.className = 'chat-msg user-msg';
+    div.innerHTML = `
+      <div class="msg-bubble">
+        ${escapeHtml(text)}
+        <div class="msg-time">${time}</div>
+      </div>
+      <div class="msg-avatar"><i class="fas fa-user"></i></div>
+    `;
+    chatMessages.appendChild(div);
+    scrollToBottom();
+  }
+
+  function appendBotMessage(answerHtml, actionObj, suggestedQuestions) {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const div = document.createElement('div');
+    div.className = 'chat-msg bot-msg';
+
+    let actionBtnHtml = '';
+    if (actionObj && actionObj.text && actionObj.url) {
+      actionBtnHtml = `<div class="chat-action-wrapper"><a href="${actionObj.url}" class="chat-action-btn">${escapeHtml(actionObj.text)} &rarr;</a></div>`;
+    }
+
+    div.innerHTML = `
+      <div class="msg-avatar">${botAvatarSvgHtml}</div>
+      <div class="msg-bubble">
+        ${answerHtml}
+        ${actionBtnHtml}
+        <div class="msg-time">${time}</div>
+      </div>
+    `;
+    chatMessages.appendChild(div);
+
+    if (suggestedQuestions && suggestedQuestions.length) {
+      renderChips(suggestedQuestions);
+    }
+
+    scrollToBottom();
+  }
+
+  function showTyping(show) {
+    typingIndicator.style.display = show ? 'flex' : 'none';
+    if (show) scrollToBottom();
+  }
+
+  function scrollToBottom() {
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+})();
+</script>
+

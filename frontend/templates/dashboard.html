@@ -1,212 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manager Dashboard | Evenzo</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary: #953553;
-            --secondary: #A95C68;
-            --bg-light: #f8f9fa;
-            --white: #ffffff;
-            --text-dark: #333;
-            --sidebar-width: 260px;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-light); display: flex; }
-
-        /* Unified Sidebar Design - Pixel Perfect */
-        .sidebar { width: var(--sidebar-width); background-color: var(--primary); height: 100vh; position: fixed; top: 0; left: 0; color: white; padding: 20px; display: flex; flex-direction: column; z-index: 1000; box-sizing: border-box; margin: 0; }
-        .sidebar .logo { font-size: 28px; font-weight: bold; margin: 0 0 40px 0; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: block; }
-        .nav-menu { list-style: none; flex-grow: 1; margin: 0; padding: 0; display: block; }
-        .nav-item { padding: 15px; margin: 0 0 10px 0; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 16px; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .nav-item:hover, .nav-item.active { background-color: rgba(255,255,255,0.15); color: white; }
-        .logout-container { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); display: block; }
-
-        /* Main Content */
-        .main-content { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); padding: 30px; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        .welcome-text h1 { color: var(--primary); font-size: 24px; }
-
-        /* Stats Grid */
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid var(--primary); }
-        .stat-card h3 { font-size: 14px; color: #777; margin-bottom: 10px; }
-        .stat-card .value { font-size: 24px; font-weight: bold; color: var(--text-dark); }
-
-        /* Table Styling */
-        .content-card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .content-card h2 { margin-bottom: 20px; color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; background-color: #fce4ec; color: var(--primary); font-size: 14px; }
-        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; }
-
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
-        .pending { background: #fff3e0; color: #ef6c00; }
-        .confirmed { background: #e8f5e9; color: #2e7d32; }
-        .rejected { background: #ffebee; color: #d32f2f; }
-
-        /* Action Buttons */
-        .btn-action { padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; margin-right: 5px; transition: 0.2s; text-decoration: none; font-size: 13px; font-weight: bold; display: inline-block; }
-        .btn-approve { background: #2e7d32; color: white; }
-        .btn-approve:hover { background: #1b5e20; }
-        .btn-reject { background: #d32f2f; color: white; }
-        .btn-reject:hover { background: #b71c1c; }
-        
-        .btn-view { background: white; color: var(--primary); border: 1px solid var(--primary); }
-        .btn-view:hover { background: var(--primary); color: white; }
-
-        /* 🟢 Custom Modal Styling */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 40px 30px; border-radius: 15px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .modal-icon { font-size: 55px; margin-bottom: 15px; }
-        .modal-title { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
-        .modal-text { color: #666; font-size: 15px; margin-bottom: 25px; line-height: 1.5; }
-        
-        .modal-btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; transition: 0.2s; }
-        .btn-cancel { background: #eee; color: #333; }
-        .btn-cancel:hover { background: #ddd; }
-        .btn-confirm-approve { background: #2e7d32; color: white; }
-        .btn-confirm-approve:hover { background: #1b5e20; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3); }
-        .btn-confirm-reject { background: #d32f2f; color: white; }
-        .btn-confirm-reject:hover { background: #b71c1c; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.3); }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Dashboard | Evenzo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--primary:#953553;--bg:#f8f9fa;--sw:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:var(--bg);display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--primary);height:100vh;position:fixed;left:0;top:0;color:#fff;padding:20px;display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
+.sidebar .logo{font-size:26px;font-weight:bold;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:28px}
+.nav-item{padding:13px 15px;margin-bottom:8px;border-radius:8px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);text-decoration:none;transition:.3s;font-size:15px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.15);color:#fff}
+.logout-box{margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.main{margin-left:var(--sw);width:calc(100% - var(--sw));padding:35px;min-height:100vh}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid #eee}
+.welcome h1{color:var(--primary);font-size:24px}.welcome p{color:#666;margin-top:4px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:18px;margin-bottom:32px}
+.stat-card{background:#fff;padding:22px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05);border-left:5px solid var(--primary)}
+.stat-card h3{font-size:12px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.stat-card .val{font-size:26px;font-weight:bold;color:#333}
+.card{background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 15px rgba(0,0,0,.05);margin-bottom:28px}
+.card h2{color:var(--primary);margin-bottom:20px;font-size:18px;display:flex;align-items:center;gap:10px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:13px;background:#fce4ec;color:var(--primary);font-size:13px}
+td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-align:middle}
+.badge{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:bold;text-transform:uppercase}
+.badge-pending{background:#fff3e0;color:#ef6c00}.badge-confirmed{background:#e8f5e9;color:#2e7d32}
+.badge-rejected{background:#ffebee;color:#c62828}.badge-completed{background:#e3f2fd;color:#1565c0}
+.badge-cancelled{background:#fce4ec;color:#953553}
+.btn{display:inline-block;padding:8px 14px;border-radius:7px;font-weight:600;font-size:13px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
+.btn-approve{background:#2e7d32;color:#fff}.btn-approve:hover{background:#1b5e20}
+.btn-reject{background:#d32f2f;color:#fff}.btn-reject:hover{background:#b71c1c}
+.btn-view{background:var(--primary);color:#fff}.btn-view:hover{opacity:.88}
+.btn-complete{background:#1565c0;color:#fff}.btn-complete:hover{background:#0d47a1}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.btn-sm{padding:5px 11px;font-size:12px}
+/* Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:3000;justify-content:center;align-items:center}
+.modal.open{display:flex}
+.modal-box{background:#fff;padding:38px 30px;border-radius:14px;width:90%;max-width:420px;text-align:center}
+.modal-icon{font-size:50px;margin-bottom:14px}.modal-title{font-size:20px;font-weight:bold;margin-bottom:8px}
+.modal-text{color:#666;font-size:14px;margin-bottom:22px;line-height:1.5}
+.modal-btns{display:flex;gap:14px;justify-content:center}
+.flash-wrap{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}
+.flash-msg{padding:14px 18px;border-radius:8px;font-weight:bold;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,.13);background:#fff;border-left:5px solid #2e7d32;margin-bottom:10px;color:#333}
+.notif-btn{position:relative;cursor:pointer;padding:10px}
+.notif-btn i{font-size:24px;color:var(--primary)}
+.notif-badge{position:absolute;top:4px;right:4px;background:#d32f2f;color:#fff;font-size:11px;font-weight:bold;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.notif-drop{position:absolute;top:48px;right:0;background:#fff;width:310px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.15);display:none;flex-direction:column;z-index:2000;overflow:hidden;border:1px solid #eee}
+.notif-drop.open{display:flex}
+.notif-hdr{padding:14px;border-bottom:1px solid #eee;font-weight:bold;color:var(--primary);background:#fdf5f7}
+.notif-body{max-height:260px;overflow-y:auto}
+.notif-item{padding:12px;border-bottom:1px solid #eee;display:flex;gap:10px;align-items:flex-start;font-size:13px;color:#444}
+.notif-item.unread{background:#fdf5f7}
+.notif-empty{padding:25px;text-align:center;color:#888;font-size:13px}
+@media(max-width:768px){.sidebar{width:100%;height:auto;position:relative}.main{margin-left:0;width:100%;padding:18px}.stats{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
+<div class="flash-wrap">{% with messages=get_flashed_messages() %}{% if messages %}{% for m in messages %}
+<div class="flash-msg"><i class="fas fa-check-circle" style="color:#2e7d32"></i> {{ m }}</div>
+{% endfor %}{% endif %}{% endwith %}</div>
 
-    <div class="sidebar">
-        <div class="logo">Evenzo</div>
-        <nav class="nav-menu">
-            <a href="{{ url_for('dashboard') }}" class="nav-item active"><i class="fas fa-home"></i> Dashboard</a>
-            <a href="{{ url_for('edit_profile') }}" class="nav-item"><i class="fas fa-user-edit"></i> Edit Profile</a>
-            <a href="{{ url_for('portfolio') }}" class="nav-item"><i class="fas fa-images"></i> Portfolio</a>
-            <a href="{{ url_for('index') }}" class="nav-item"><i class="fas fa-arrow-left"></i> Back to Home</a>
-        </nav>
-        <div class="logout-container">
-            <a href="{{ url_for('logout') }}" class="nav-item"><i class="fas fa-sign-out-alt"></i> Logout</a>
-        </div>
+<div class="sidebar">
+  <div class="logo">Evenzo</div>
+  <nav>
+    <a class="nav-item active" href="{{ url_for('dashboard') }}"><i class="fas fa-home"></i> Dashboard</a>
+    <a class="nav-item" href="{{ url_for('edit_profile') }}"><i class="fas fa-user-edit"></i> Edit Profile</a>
+    <a class="nav-item" href="{{ url_for('portfolio') }}"><i class="fas fa-images"></i> My Portfolio</a>
+    <a class="nav-item" href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Home</a>
+  </nav>
+  <div class="logout-box">
+    <a class="nav-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="welcome">
+      <h1>Event Manager Dashboard</h1>
+      <p>{{ profile.business_name if profile else session.user_name }} &nbsp;·&nbsp; Avg Rating: ⭐ {{ avg_rating }}</p>
     </div>
-
-    <div class="main-content">
-        <header>
-            <div class="welcome-text">
-                <h1>Event Manager Dashboard</h1>
-                <p>Manage events for <strong>{{ profile.business_name if profile else "Your Business" }}</strong></p>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="notif-btn" id="notifBtn" onclick="toggleNotif()">
+        <i class="fas fa-bell"></i>
+        {% if unread_count > 0 %}<div class="notif-badge">{{ unread_count }}</div>{% endif %}
+        <div class="notif-drop" id="notifDrop">
+          <div class="notif-hdr">Notifications</div>
+          <div class="notif-body">
+            {% if notifications %}{% for n in notifications %}
+            <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+              <i class="fas fa-info-circle" style="color:var(--primary);margin-top:2px"></i>
+              <div><strong>{{ n.title }}</strong><br>{{ n.message }}<br><small style="color:#aaa">{{ n.created_at[:16] }}</small></div>
             </div>
-            <div class="user-profile">
-                <span style="font-weight: 600; color: var(--primary);">Welcome, {{ session.user_name }}</span>
-            </div>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Bookings</h3>
-                <div class="value">{{ total_bookings }}</div>
-            </div>
-            <div class="stat-card">
-                <h3>Pending Requests</h3>
-                <div class="value">{{ pending_count }}</div>
-            </div>
-            <div class="stat-card">
-                <h3>Total Revenue</h3>
-                <div class="value">₹{{ "{:,.2f}".format(total_revenue) }}</div>
-            </div>
+            {% endfor %}{% else %}
+            <div class="notif-empty"><i class="fas fa-bell-slash"></i><br>No notifications</div>
+            {% endif %}
+          </div>
         </div>
-
-        <div class="content-card">
-            <h2>Recent Booking Requests</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Client Name</th>
-                        <th>Event Date</th>
-                        <th>Status</th>
-                        <th>Details</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for booking in bookings %}
-                    <tr>
-                        <td>{{ booking.client_name }}</td>
-                        <td>{{ booking.event_date }}</td>
-                        <td><span class="status-badge {{ booking.status }}">{{ booking.status }}</span></td>
-                        
-                        <td>
-                            <a href="{{ url_for('view_booking', booking_id=booking.id) }}" class="btn-action btn-view"><i class="fas fa-eye"></i> View</a>
-                        </td>
-                        
-                        <td>
-                            {% if booking.status == 'pending' %}
-                            <button class="btn-action btn-approve" onclick="openActionModal('{{ booking.id }}', 'approve')"><i class="fas fa-check"></i> Approve</button>
-                            <button class="btn-action btn-reject" onclick="openActionModal('{{ booking.id }}', 'reject')"><i class="fas fa-times"></i> Reject</button>
-                            {% else %}
-                            <span style="color: #999; font-style: italic; margin-left: 10px;">Processed</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; color: #999;">No booking requests yet.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+      </div>
+      <span style="font-weight:600;color:var(--primary)">{{ session.user_name }}</span>
     </div>
+  </div>
 
-    <div id="actionModal" class="modal">
-        <div class="modal-content">
-            <div id="modalIcon" class="modal-icon"><i class="fas fa-question-circle"></i></div>
-            <div id="modalTitle" class="modal-title">Confirm Action</div>
-            <div id="modalText" class="modal-text">Are you sure you want to do this?</div>
-            
-            <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
-                <button type="button" onclick="closeActionModal()" class="modal-btn btn-cancel">Cancel</button>
-                
-                <form id="actionForm" method="POST" style="margin: 0;">
-                    <button type="submit" id="confirmActionBtn" class="modal-btn">Confirm</button>
-                </form>
-            </div>
-        </div>
+  <div class="stats">
+    <div class="stat-card"><h3>Total Bookings</h3><div class="val">{{ total_bookings }}</div></div>
+    <div class="stat-card"><h3>Pending</h3><div class="val" style="color:#ef6c00">{{ pending_count }}</div></div>
+    <div class="stat-card"><h3>Confirmed</h3><div class="val" style="color:#2e7d32">{{ confirmed_count }}</div></div>
+    <div class="stat-card"><h3>Completed</h3><div class="val" style="color:#1565c0">{{ completed_count }}</div></div>
+    <div class="stat-card"><h3>Revenue (paid)</h3><div class="val">₹{{ "{:,.0f}".format(total_revenue) }}</div></div>
+  </div>
+
+  <div class="card">
+    <h2><i class="fas fa-clipboard-list"></i> Booking Requests
+      <select onchange="filterByStatus(this.value)" class="btn btn-outline btn-sm" style="margin-left:auto;padding:6px 12px;font-size:13px">
+        <option value="all">All</option><option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option><option value="rejected">Rejected</option>
+        <option value="completed">Completed</option>
+      </select>
+    </h2>
+    {% if bookings %}
+    <div style="overflow-x:auto">
+    <table><thead><tr><th>Client</th><th>Service</th><th>Event Date</th><th>Status</th><th>View</th><th>Action</th></tr></thead>
+    <tbody id="bkTable">
+    {% for b in bookings %}
+    <tr class="bkrow" data-status="{{ b.status }}">
+      <td><strong>{{ b.client_name }}</strong><br><small style="color:#999">{{ b.event_date }}</small></td>
+      <td>{{ b.service_name or 'Custom' }}<br><small style="color:#888">{{ b.category or '' }}</small></td>
+      <td>{{ b.event_date }}</td>
+      <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+      <td><a href="{{ url_for('view_booking', booking_id=b.id) }}" class="btn btn-view btn-sm"><i class="fas fa-eye"></i></a></td>
+      <td>
+        {% if b.status == 'pending' %}
+        <button class="btn btn-approve btn-sm" onclick="openModal({{ b.id }},'approve')"><i class="fas fa-check"></i> Approve</button>
+        <button class="btn btn-reject btn-sm" onclick="openModal({{ b.id }},'reject')"><i class="fas fa-times"></i> Reject</button>
+        {% elif b.status == 'confirmed' %}
+        <form method="POST" action="{{ url_for('complete_booking', booking_id=b.id) }}" style="display:inline">
+          <button class="btn btn-complete btn-sm"><i class="fas fa-flag-checkered"></i> Complete</button>
+        </form>
+        {% else %}
+        <span style="color:#bbb;font-size:13px">—</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#aaa"><i class="fas fa-inbox" style="font-size:48px;margin-bottom:14px;display:block"></i>No booking requests yet.</div>
+    {% endif %}
+  </div>
+
+  {% if reviews %}
+  <div class="card">
+    <h2><i class="fas fa-star"></i> Recent Reviews</h2>
+    {% for r in reviews %}
+    <div style="border-bottom:1px solid #eee;padding:12px 0">
+      <strong>{{ r.client_name }}</strong>
+      <span style="color:#f39c12;margin:0 10px">{% for i in range(r.rating) %}⭐{% endfor %}</span>
+      <small style="color:#aaa">{{ r.created_at[:10] }}</small>
+      <p style="color:#555;margin-top:5px;font-style:italic">"{{ r.review_text }}"</p>
     </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
 
-    <script>
-        function openActionModal(bookingId, actionType) {
-            const modal = document.getElementById('actionModal');
-            const form = document.getElementById('actionForm');
-            const icon = document.getElementById('modalIcon');
-            const title = document.getElementById('modalTitle');
-            const text = document.getElementById('modalText');
-            const btn = document.getElementById('confirmActionBtn');
+<!-- Action confirmation modal -->
+<div id="actionModal" class="modal">
+  <div class="modal-box">
+    <div id="mIcon" class="modal-icon"></div>
+    <div id="mTitle" class="modal-title"></div>
+    <div id="mText" class="modal-text"></div>
+    <div class="modal-btns">
+      <button onclick="document.getElementById('actionModal').classList.remove('open')" class="btn btn-outline">Cancel</button>
+      <form id="mForm" method="POST" style="margin:0"><button id="mBtn" type="submit" class="btn">Confirm</button></form>
+    </div>
+  </div>
+</div>
 
-            form.action = `/update_booking/${bookingId}/${actionType}`;
-
-            if(actionType === 'approve') {
-                icon.innerHTML = '<i class="fas fa-check-circle" style="color: #2e7d32;"></i>';
-                title.innerText = "Approve Booking?";
-                title.style.color = "#2e7d32";
-                text.innerHTML = "By approving, these dates will be <b>permanently marked as unavailable</b> in your portfolio. An email will be sent to the client.";
-                btn.className = "modal-btn btn-confirm-approve";
-                btn.innerText = "Yes, Approve";
-            } else {
-                icon.innerHTML = '<i class="fas fa-times-circle" style="color: #d32f2f;"></i>';
-                title.innerText = "Reject Booking?";
-                title.style.color = "#d32f2f";
-                text.innerHTML = "By rejecting, these dates will become available again for other clients. A polite email will be sent to the client.";
-                btn.className = "modal-btn btn-confirm-reject";
-                btn.innerText = "Yes, Reject";
-            }
-
-            modal.style.display = 'flex';
-        }
-
-        function closeActionModal() {
-            document.getElementById('actionModal').style.display = 'none';
-        }
-    </script>
+<script>
+function openModal(id, action) {
+  const m = document.getElementById('actionModal');
+  document.getElementById('mForm').action = `/update_booking/${id}/${action}`;
+  if (action === 'approve') {
+    document.getElementById('mIcon').innerHTML = '<i class="fas fa-check-circle" style="color:#2e7d32"></i>';
+    document.getElementById('mTitle').innerText = 'Approve Booking?';
+    document.getElementById('mTitle').style.color = '#2e7d32';
+    document.getElementById('mText').innerHTML = 'This will confirm the booking and block those dates. An email will be sent to the client.';
+    document.getElementById('mBtn').className = 'btn btn-approve';
+    document.getElementById('mBtn').innerText = 'Yes, Approve';
+  } else {
+    document.getElementById('mIcon').innerHTML = '<i class="fas fa-times-circle" style="color:#d32f2f"></i>';
+    document.getElementById('mTitle').innerText = 'Reject Booking?';
+    document.getElementById('mTitle').style.color = '#d32f2f';
+    document.getElementById('mText').innerHTML = 'The client will be notified that their request was not accepted.';
+    document.getElementById('mBtn').className = 'btn btn-reject';
+    document.getElementById('mBtn').innerText = 'Yes, Reject';
+  }
+  m.classList.add('open');
+}
+function filterByStatus(v) {
+  document.querySelectorAll('.bkrow').forEach(r => {
+    r.style.display = (v === 'all' || r.dataset.status === v) ? '' : 'none';
+  });
+}
+function toggleNotif() {
+  document.getElementById('notifDrop').classList.toggle('open');
+}
+window.addEventListener('click', e => {
+  if (!document.getElementById('notifBtn').contains(e.target))
+    document.getElementById('notifDrop').classList.remove('open');
+});
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.querySelectorAll('.flash-msg').forEach(f => {
+    f.style.opacity = '0'; setTimeout(() => f.remove(), 400);
+  }), 4000);
+});
+</script>
+{% include 'chatbot_widget.html' %}
 </body>
 </html>

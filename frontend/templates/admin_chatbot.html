@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Chatbot Knowledgebase | Evenzo Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--primary:#953553;--bg:#f8f9fa;--sw:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:var(--bg);display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--primary);height:100vh;position:fixed;left:0;top:0;color:#fff;padding:20px;display:flex;flex-direction:column;z-index:1000;overflow-y:auto}
+.sidebar .logo{font-size:26px;font-weight:bold;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:28px}
+.nav-item{padding:13px 15px;margin-bottom:8px;border-radius:8px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);text-decoration:none;transition:.3s;font-size:15px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.15);color:#fff}
+.logout-box{margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.main{margin-left:var(--sw);width:calc(100% - var(--sw));padding:35px;min-height:100vh}
+.card{background:#fff;border-radius:12px;padding:26px;box-shadow:0 4px 15px rgba(0,0,0,.05);margin-bottom:26px}
+.card h2{color:var(--primary);margin-bottom:18px;font-size:18px;display:flex;align-items:center;gap:10px}
+.add-form{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:15px}
+.fg{display:flex;flex-direction:column}
+.fg.full{grid-column:1 / -1}
+.fg label{font-size:12px;font-weight:bold;color:#777;margin-bottom:5px;text-transform:uppercase}
+.fg input, .fg select, .fg textarea{padding:10px;border:1px solid #ddd;border-radius:7px;font-size:14px;outline:none;font-family:inherit}
+.fg textarea{min-height:80px;resize:vertical}
+.fg input:focus, .fg select:focus, .fg textarea:focus{border-color:var(--primary)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:13px;background:#fce4ec;color:var(--primary);font-size:13px}
+td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-align:top}
+.btn{display:inline-block;padding:10px 18px;border-radius:7px;font-weight:600;font-size:13px;border:none;cursor:pointer;background:var(--primary);color:#fff;transition:.2s}
+.btn:hover{opacity:.88}.btn-sm{padding:6px 12px;font-size:12px}
+.btn-toggle{background:#ef6c00;color:#fff}
+.btn-delete{background:#d32f2f;color:#fff}
+.btn-edit{background:#1976d2;color:#fff}
+.badge{padding:4px 10px;border-radius:15px;font-size:11px;font-weight:bold;text-transform:uppercase}
+.badge-active{background:#e8f5e9;color:#2e7d32}
+.badge-inactive{background:#ffebee;color:#c62828}
+.flash-wrap{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}
+.flash-msg{padding:14px 18px;border-radius:8px;font-weight:bold;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,.13);background:#e8f5e9;border-left:5px solid #2e7d32;margin-bottom:10px;color:#2e7d32}
+
+/* Edit Modal */
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:3000;justify-content:center;align-items:center}
+.modal.open{display:flex}
+.modal-box{background:#fff;padding:28px;border-radius:12px;width:90%;max-width:550px}
+.modal-box h3{color:var(--primary);margin-bottom:16px}
+@media(max-width:768px){.sidebar{width:100%;height:auto;position:relative}.main{margin-left:0;width:100%;padding:16px}.add-form{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="flash-wrap">{% with messages=get_flashed_messages() %}{% if messages %}{% for m in messages %}
+<div class="flash-msg"><i class="fas fa-check-circle"></i> {{ m }}</div>
+{% endfor %}{% endif %}{% endwith %}</div>
+
+<div class="sidebar">
+  <div class="logo">Evenzo Admin</div>
+  <nav>
+    <a class="nav-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="nav-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users & Vendors</a>
+    <a class="nav-item" href="{{ url_for('admin_bookings') }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+    <a class="nav-item" href="{{ url_for('admin_complaints') }}"><i class="fas fa-exclamation-circle"></i> Complaints</a>
+    <a class="nav-item" href="{{ url_for('admin_reviews') }}"><i class="fas fa-star"></i> Reviews</a>
+    <a class="nav-item" href="{{ url_for('admin_categories') }}"><i class="fas fa-tags"></i> Categories</a>
+    <a class="nav-item active" href="{{ url_for('admin_chatbot') }}"><i class="fas fa-robot"></i> AI Chatbot Q&A</a>
+    <a class="nav-item" href="{{ url_for('admin_reports') }}"><i class="fas fa-chart-bar"></i> Reports</a>
+    <a class="nav-item" href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Home</a>
+  </nav>
+  <div class="logout-box"><a class="nav-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+</div>
+
+<div class="main">
+  <h1 style="color:var(--primary);margin-bottom:24px"><i class="fas fa-robot"></i> AI Chatbot Knowledgebase Management</h1>
+
+  <!-- Add Question Form -->
+  <div class="card">
+    <h2><i class="fas fa-plus-circle"></i> Add Custom Question & Response</h2>
+    <form method="POST" action="{{ url_for('admin_add_chatbot_question') }}">
+      <div class="add-form">
+        <div class="fg full">
+          <label>Question / Query *</label>
+          <input name="question" required placeholder="e.g., How do I cancel a booking request?">
+        </div>
+        <div class="fg full">
+          <label>Answer / Response *</label>
+          <textarea name="answer" required placeholder="Provide clear, concise steps or information..."></textarea>
+        </div>
+        <div class="fg">
+          <label>Category</label>
+          <input name="category" value="General" placeholder="e.g., Booking, Pricing, Account">
+        </div>
+        <div class="fg">
+          <label>Keywords (Comma separated)</label>
+          <input name="keywords" placeholder="e.g., cancel, refund, revoke booking">
+        </div>
+      </div>
+      <button type="submit" class="btn"><i class="fas fa-save"></i> Save Question</button>
+    </form>
+  </div>
+
+  <!-- Questions List -->
+  <div class="card">
+    <h2><i class="fas fa-list"></i> Pre-trained Q&A Knowledge Base ({{ questions|length }})</h2>
+    {% if questions %}
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Question</th>
+            <th>Answer</th>
+            <th>Keywords</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in questions %}
+          <tr>
+            <td><span style="font-weight:600;color:var(--primary)">{{ q.category or 'General' }}</span></td>
+            <td><strong>{{ q.question }}</strong></td>
+            <td style="max-width:300px;line-height:1.4">{{ q.answer }}</td>
+            <td style="color:#666;font-size:12px">{{ q.keywords or '—' }}</td>
+            <td>
+              <span class="badge badge-{% if q.is_active %}active{% else %}inactive{% endif %}">
+                {% if q.is_active %}Active{% else %}Disabled{% endif %}
+              </span>
+            </td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-sm btn-edit" onclick="openEditModal({{ q.id|tojson }}, {{ q.question|tojson }}, {{ q.answer|tojson }}, {{ (q.category or '')|tojson }}, {{ (q.keywords or '')|tojson }})">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+
+              <form method="POST" action="{{ url_for('admin_toggle_chatbot_question', q_id=q.id) }}" style="display:inline">
+                <button type="submit" class="btn btn-sm btn-toggle" title="Toggle active status">
+                  <i class="fas fa-power-off"></i>
+                </button>
+              </form>
+
+              <form method="POST" action="{{ url_for('admin_delete_chatbot_question', q_id=q.id) }}" style="display:inline" onsubmit="return confirm('Delete this question permanently?')">
+                <button type="submit" class="btn btn-sm btn-delete" title="Delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:#aaa;text-align:center;padding:30px">No chatbot questions added yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-box">
+    <h3><i class="fas fa-edit"></i> Edit Chatbot Question</h3>
+    <form id="editForm" method="POST">
+      <div class="fg" style="margin-bottom:12px">
+        <label>Question</label>
+        <input type="text" id="editQuestion" name="question" required>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Answer</label>
+        <textarea id="editAnswer" name="answer" required style="min-height:80px"></textarea>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Category</label>
+        <input type="text" id="editCategory" name="category">
+      </div>
+      <div class="fg" style="margin-bottom:20px">
+        <label>Keywords</label>
+        <input type="text" id="editKeywords" name="keywords">
+      </div>
+      <div style="text-align:right;display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn" style="background:#eee;color:#333" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn"><i class="fas fa-save"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openEditModal(id, q, a, cat, kw) {
+  document.getElementById('editForm').action = `/admin/chatbot/edit/${id}`;
+  document.getElementById('editQuestion').value = q;
+  document.getElementById('editAnswer').value = a;
+  document.getElementById('editCategory').value = cat;
+  document.getElementById('editKeywords').value = kw;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.querySelectorAll('.flash-msg').forEach(f => { f.style.opacity='0'; setTimeout(() => f.remove(), 400); }), 3000);
+});
+</script>
+</body>
+</html>

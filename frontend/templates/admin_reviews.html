@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reviews | Evenzo Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--primary:#953553;--bg:#f8f9fa;--sw:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:var(--bg);display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--primary);height:100vh;position:fixed;left:0;top:0;color:#fff;padding:20px;display:flex;flex-direction:column;z-index:1000}
+.sidebar .logo{font-size:26px;font-weight:bold;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:28px}
+.nav-item{padding:13px 15px;margin-bottom:8px;border-radius:8px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);text-decoration:none;transition:.3s;font-size:15px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.15);color:#fff}
+.logout-box{margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.main{margin-left:var(--sw);width:calc(100% - var(--sw));padding:35px;min-height:100vh}
+.card{background:#fff;border-radius:12px;padding:26px;box-shadow:0 4px 15px rgba(0,0,0,.05)}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:13px;background:#fce4ec;color:var(--primary);font-size:13px}
+td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-align:middle}
+.badge{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:bold}
+.badge-visible{background:#e8f5e9;color:#2e7d32}.badge-hidden{background:#ffebee;color:#c62828}
+.btn{display:inline-block;padding:6px 12px;border-radius:7px;font-weight:600;font-size:12px;text-decoration:none;border:none;cursor:pointer;transition:.2s}
+.btn-hide{background:#ef6c00;color:#fff}.btn-show{background:#2e7d32;color:#fff}
+.btn-delete{background:#d32f2f;color:#fff}
+.flash-wrap{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}
+.flash-msg{padding:14px 18px;border-radius:8px;font-weight:bold;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,.13);background:#e8f5e9;border-left:5px solid #2e7d32;margin-bottom:10px;color:#2e7d32}
+</style>
+</head>
+<body>
+<div class="flash-wrap">{% with messages=get_flashed_messages() %}{% if messages %}{% for m in messages %}
+<div class="flash-msg"><i class="fas fa-check-circle"></i> {{ m }}</div>
+{% endfor %}{% endif %}{% endwith %}</div>
+<div class="sidebar">
+  <div class="logo">Evenzo Admin</div>
+  <nav>
+    <a class="nav-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="nav-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users</a>
+    <a class="nav-item" href="{{ url_for('admin_bookings') }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+    <a class="nav-item" href="{{ url_for('admin_complaints') }}"><i class="fas fa-exclamation-circle"></i> Complaints</a>
+    <a class="nav-item active" href="{{ url_for('admin_reviews') }}"><i class="fas fa-star"></i> Reviews</a>
+    <a class="nav-item" href="{{ url_for('admin_categories') }}"><i class="fas fa-tags"></i> Categories</a>
+    <a class="nav-item" href="{{ url_for('admin_chatbot') }}"><i class="fas fa-robot"></i> AI Chatbot Q&A</a>
+    <a class="nav-item" href="{{ url_for('admin_reports') }}"><i class="fas fa-chart-bar"></i> Reports</a>
+  </nav>
+  <div class="logout-box"><a class="nav-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+</div>
+<div class="main">
+  <h1 style="color:var(--primary);margin-bottom:24px"><i class="fas fa-star"></i> Reviews Management</h1>
+  <div class="card">
+    {% if reviews %}
+    <div style="overflow-x:auto">
+    <table><thead><tr><th>#</th><th>Client</th><th>Vendor</th><th>Rating</th><th>Review</th><th>Visibility</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+    {% for r in reviews %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ r.client_name }}</td>
+      <td>{{ r.business_name }}</td>
+      <td style="color:#f39c12">{% for i in range(r.rating) %}⭐{% endfor %}</td>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ r.review_text }}"><em>"{{ r.review_text }}"</em></td>
+      <td><span class="badge badge-{{ 'visible' if r.is_visible else 'hidden' }}">{{ 'Visible' if r.is_visible else 'Hidden' }}</span></td>
+      <td>{{ r.created_at[:10] }}</td>
+      <td>
+        <form method="POST" action="{{ url_for('toggle_review_visibility', review_id=r.id) }}" style="display:inline">
+          <button class="btn {% if r.is_visible %}btn-hide{% else %}btn-show{% endif %}">
+            {{ 'Hide' if r.is_visible else 'Show' }}
+          </button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_delete_review', review_id=r.id) }}" style="display:inline" onsubmit="return confirm('Delete this review?')">
+          <button class="btn btn-delete">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    <p style="text-align:center;padding:40px;color:#aaa">No reviews yet.</p>
+    {% endif %}
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.querySelectorAll('.flash-msg').forEach(f => { f.style.opacity='0'; setTimeout(() => f.remove(), 400); }), 3000);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Complaints | Evenzo Admin</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--primary:#953553;--bg:#f8f9fa;--sw:260px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:var(--bg);display:flex;min-height:100vh}
+.sidebar{width:var(--sw);background:var(--primary);height:100vh;position:fixed;left:0;top:0;color:#fff;padding:20px;display:flex;flex-direction:column;z-index:1000}
+.sidebar .logo{font-size:26px;font-weight:bold;text-align:center;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:18px;margin-bottom:28px}
+.nav-item{padding:13px 15px;margin-bottom:8px;border-radius:8px;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.8);text-decoration:none;transition:.3s;font-size:15px}
+.nav-item:hover,.nav-item.active{background:rgba(255,255,255,.15);color:#fff}
+.logout-box{margin-top:auto;padding-top:18px;border-top:1px solid rgba(255,255,255,.1)}
+.main{margin-left:var(--sw);width:calc(100% - var(--sw));padding:35px;min-height:100vh}
+.card{background:#fff;border-radius:12px;padding:26px;box-shadow:0 4px 15px rgba(0,0,0,.05);margin-bottom:26px}
+.filter-bar{display:flex;gap:14px;background:#fff;padding:16px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,.05);margin-bottom:22px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;flex:1;min-width:160px}
+.fg label{font-size:12px;font-weight:bold;color:#777;margin-bottom:5px;text-transform:uppercase}
+.fg select{padding:9px;border:1px solid #ddd;border-radius:7px;font-size:14px;outline:none}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:13px;background:#fce4ec;color:var(--primary);font-size:13px}
+td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-align:middle}
+.badge{padding:5px 11px;border-radius:20px;font-size:11px;font-weight:bold;text-transform:uppercase}
+.badge-pending{background:#fff3e0;color:#ef6c00}.badge-resolved{background:#e8f5e9;color:#2e7d32}
+.badge-rejected{background:#ffebee;color:#c62828}.badge-in_review{background:#e3f2fd;color:#1565c0}
+.btn{display:inline-block;padding:7px 13px;border-radius:7px;font-weight:600;font-size:13px;text-decoration:none;border:none;cursor:pointer;background:var(--primary);color:#fff;transition:.2s}
+.btn:hover{opacity:.88}.btn-sm{padding:5px 10px;font-size:12px}
+.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}.btn-outline:hover{background:var(--primary);color:#fff}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:3000;justify-content:center;align-items:center}
+.modal.open{display:flex}
+.modal-box{background:#fff;padding:30px;border-radius:14px;width:90%;max-width:500px;position:relative;max-height:90vh;overflow-y:auto}
+.modal-close{position:absolute;top:12px;right:16px;font-size:26px;cursor:pointer;color:#666}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-weight:600;font-size:13px;margin-bottom:6px;color:#555}
+.form-group select,.form-group textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:7px;font-size:14px;outline:none}
+.flash-wrap{position:fixed;top:20px;right:20px;z-index:9999;max-width:400px}
+.flash-msg{padding:14px 18px;border-radius:8px;font-weight:bold;display:flex;align-items:center;gap:10px;box-shadow:0 8px 25px rgba(0,0,0,.13);background:#e8f5e9;border-left:5px solid #2e7d32;margin-bottom:10px;color:#2e7d32}
+</style>
+</head>
+<body>
+<div class="flash-wrap">{% with messages=get_flashed_messages() %}{% if messages %}{% for m in messages %}
+<div class="flash-msg"><i class="fas fa-check-circle"></i> {{ m }}</div>
+{% endfor %}{% endif %}{% endwith %}</div>
+<div class="sidebar">
+  <div class="logo">Evenzo Admin</div>
+  <nav>
+    <a class="nav-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <a class="nav-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users"></i> Users</a>
+    <a class="nav-item" href="{{ url_for('admin_bookings') }}"><i class="fas fa-calendar-check"></i> Bookings</a>
+    <a class="nav-item active" href="{{ url_for('admin_complaints') }}"><i class="fas fa-exclamation-circle"></i> Complaints</a>
+    <a class="nav-item" href="{{ url_for('admin_reviews') }}"><i class="fas fa-star"></i> Reviews</a>
+    <a class="nav-item" href="{{ url_for('admin_categories') }}"><i class="fas fa-tags"></i> Categories</a>
+    <a class="nav-item" href="{{ url_for('admin_chatbot') }}"><i class="fas fa-robot"></i> AI Chatbot Q&A</a>
+    <a class="nav-item" href="{{ url_for('admin_reports') }}"><i class="fas fa-chart-bar"></i> Reports</a>
+  </nav>
+  <div class="logout-box"><a class="nav-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+</div>
+<div class="main">
+  <h1 style="color:var(--primary);margin-bottom:24px"><i class="fas fa-exclamation-circle"></i> Complaints Management</h1>
+  <form method="GET" class="filter-bar">
+    <div class="fg"><label>Status Filter</label>
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All Complaints</option>
+        <option {% if status_f=='pending' %}selected{% endif %} value="pending">Pending</option>
+        <option {% if status_f=='in_review' %}selected{% endif %} value="in_review">In Review</option>
+        <option {% if status_f=='resolved' %}selected{% endif %} value="resolved">Resolved</option>
+        <option {% if status_f=='rejected' %}selected{% endif %} value="rejected">Rejected</option>
+      </select>
+    </div>
+    <a href="{{ url_for('admin_complaints') }}" class="btn" style="background:#eee;color:#555;text-decoration:none;align-self:flex-end">Reset</a>
+  </form>
+  <div class="card">
+    {% if complaints %}
+    <div style="overflow-x:auto">
+    <table><thead><tr><th>#</th><th>Client</th><th>Vendor</th><th>Category</th><th>Description</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>
+    {% for c in complaints %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td><strong>{{ c.client_name }}</strong></td>
+      <td>{{ c.business_name or '—' }}</td>
+      <td>{{ c.category }}</td>
+      <td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="{{ c.description }}">{{ c.description }}</td>
+      <td><span class="badge badge-{{ c.status }}">{{ c.status }}</span></td>
+      <td>{{ c.created_at[:10] }}</td>
+      <td><button class="btn btn-sm" onclick="openResolve({{ c.id }}, '{{ c.admin_response or '' }}')"><i class="fas fa-reply"></i> Respond</button></td>
+    </tr>
+    {% endfor %}
+    </tbody></table></div>
+    {% else %}
+    <p style="text-align:center;padding:40px;color:#aaa">No complaints found.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div id="resolveModal" class="modal">
+  <div class="modal-box">
+    <span class="modal-close" onclick="document.getElementById('resolveModal').classList.remove('open')">&times;</span>
+    <h3 style="color:var(--primary);margin-bottom:20px"><i class="fas fa-reply"></i> Respond to Complaint</h3>
+    <form id="resolveForm" method="POST">
+      <div class="form-group"><label>Update Status</label>
+        <select name="status">
+          <option value="in_review">In Review</option>
+          <option value="resolved">Resolved</option>
+          <option value="rejected">Rejected/Closed</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Admin Response</label>
+        <textarea name="admin_response" id="adminResp" rows="4" placeholder="Write your response…"></textarea>
+      </div>
+      <button type="submit" class="btn" style="width:100%">Save Response</button>
+    </form>
+  </div>
+</div>
+<script>
+function openResolve(id, existingResp) {
+  document.getElementById('resolveForm').action = `/admin/resolve_complaint/${id}`;
+  document.getElementById('adminResp').value = existingResp;
+  document.getElementById('resolveModal').classList.add('open');
+}
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => document.querySelectorAll('.flash-msg').forEach(f => { f.style.opacity='0'; setTimeout(() => f.remove(), 400); }), 3000);
+});
+</script>
+</body>
+</html>
