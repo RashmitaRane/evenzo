@@ -1045,8 +1045,8 @@ span {
 /* Floating Trigger Button */
 .chat-toggle-btn {
   position: fixed;
-  bottom: 25px;
-  right: 25px;
+  bottom: 20px;
+  right: 20px;
   z-index: 99999;
   background: linear-gradient(135deg, #953553, #7a2640);
   color: #fff;
@@ -1119,10 +1119,10 @@ span {
 /* Chat Window Container */
 .chat-window {
   position: fixed;
-  bottom: 95px;
+  bottom: 80px;
   right: 25px;
   z-index: 99999;
-  width: 380px;
+  width: 350px;
   max-width: calc(100vw - 40px);
   height: 520px;
   max-height: calc(100vh - 120px);
@@ -1415,7 +1415,7 @@ span {
   height: 6px;
   background: #953553;
   border-radius: 50%;
-  animation: typingBlink 1.4s infinite fill-mode: both;
+  animation: typingBlink 1.4s infinite both;
 }
 
 .typing-dots span:nth-child(2) { animation-delay: .2s; }
@@ -1497,7 +1497,28 @@ span {
     right: 15px;
     width: calc(100vw - 30px);
     height: calc(100vh - 100px);
-    max-height: 520px;
+    max-height: 480px;
   }
 }
-
+
+/* Keep the assistant compact until the user opens it. */
+#evenzoChatWidgetContainer .chat-toggle-btn {
+  width: 56px;
+  height: 56px;
+  padding: 8px;
+  border-radius: 50%;
+  justify-content: center;
+}
+
+#evenzoChatWidgetContainer .chat-badge-text {
+  display: none;
+}
+
+#evenzoChatWidgetContainer .chat-window {
+  display: none;
+}
+
+#evenzoChatWidgetContainer .chat-window.open {
+  display: flex;
+}
+

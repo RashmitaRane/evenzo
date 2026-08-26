@@ -123,7 +123,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
       <td>{{ m.email }}</td>
       <td>{{ m.created_at[:10] if m.created_at else '—' }}</td>
       <td>
-        <button class="btn btn-view btn-sm" onclick="openDetails({{ m.id|tojson }},{{ m.full_name|tojson }},{{ m.email|tojson }},{{ m.business_name|tojson }},{{ m.phone|tojson }},{{ m.license_path|tojson }})"><i class="fas fa-eye"></i> View</button>
+        <a href="{{ url_for('admin_view_vendor', vendor_id=m.id) }}" class="btn btn-view btn-sm"><i class="fas fa-eye"></i> View</a>
         <button class="btn btn-approve btn-sm" onclick="openAction({{ m.id }},'approve')"><i class="fas fa-check"></i> Approve</button>
         <button class="btn btn-reject btn-sm" onclick="openAction({{ m.id }},'reject')"><i class="fas fa-times"></i> Reject</button>
       </td>
@@ -140,7 +140,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
     <h2><i class="fas fa-calendar-alt"></i> Recent Bookings <a href="{{ url_for('admin_bookings') }}" style="font-size:13px;color:var(--primary);text-decoration:none;margin-left:auto;font-weight:normal">View All →</a></h2>
     {% if recent_bookings %}
     <div style="overflow-x:auto">
-    <table><thead><tr><th>Client</th><th>Vendor</th><th>Service</th><th>Date</th><th>Status</th></tr></thead><tbody>
+    <table><thead><tr><th>Client</th><th>Vendor</th><th>Service</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>
     {% for b in recent_bookings %}
     <tr>
       <td>{{ b.client_name }}</td>
@@ -148,6 +148,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
       <td>{{ b.service_name or '—' }}</td>
       <td>{{ b.event_date }}</td>
       <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
+      <td><a href="{{ url_for('admin_view_booking', booking_id=b.id) }}" class="btn btn-view btn-sm"><i class="fas fa-eye"></i> View</a></td>
     </tr>
     {% endfor %}
     </tbody></table></div>

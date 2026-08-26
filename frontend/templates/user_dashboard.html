@@ -101,7 +101,10 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
   <nav>
     <a class="nav-item active" href="#" onclick="show('overview')"><i class="fas fa-home"></i> Overview</a>
     <a class="nav-item" href="#" onclick="show('vendors')"><i class="fas fa-search"></i> Find Vendors</a>
+    <a class="nav-item" href="{{ url_for('ai_recommendations') }}"><i class="fas fa-magic"></i> AI Recommendations</a>
+    <a class="nav-item" href="{{ url_for('budget_prediction') }}"><i class="fas fa-calculator"></i> Smart Budget</a>
     <a class="nav-item" href="#" onclick="show('bookings')"><i class="fas fa-calendar-alt"></i> My Bookings</a>
+    <a class="nav-item" href="#" onclick="show('payments')"><i class="fas fa-credit-card"></i> Payments</a>
     <a class="nav-item" href="#" onclick="show('complaints')"><i class="fas fa-exclamation-circle"></i> Complaints</a>
     <a class="nav-item" href="#" onclick="show('reviews')"><i class="fas fa-star"></i> My Reviews</a>
     <a class="nav-item" href="{{ url_for('index') }}"><i class="fas fa-arrow-left"></i> Home</a>
@@ -130,7 +133,15 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
             {% if notifications %}
               {% for n in notifications %}
               <div class="notif-item {% if not n.is_read %}unread{% endif %}">
-                <i class="fas {% if n.notif_type == 'success' %}fa-check-circle" style="color:#2e7d32{% elif n.notif_type == 'danger' %}fa-times-circle" style="color:#d32f2f{% elif n.notif_type == 'warning' %}fa-exclamation-triangle" style="color:#ef6c00{% else %}fa-info-circle" style="color:#953553{% endif %}"></i>
+                {% if n.notif_type == 'success' %}
+                <i class="fas fa-check-circle" style="color:#2e7d32"></i>
+                {% elif n.notif_type == 'danger' %}
+                <i class="fas fa-times-circle" style="color:#d32f2f"></i>
+                {% elif n.notif_type == 'warning' %}
+                <i class="fas fa-exclamation-triangle" style="color:#ef6c00"></i>
+                {% else %}
+                <i class="fas fa-info-circle" style="color:#953553"></i>
+                {% endif %}
                 <div><strong>{{ n.title }}</strong><br>{{ n.message }}<br><small style="color:#aaa">{{ n.created_at }}</small></div>
               </div>
               {% endfor %}
@@ -266,7 +277,34 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
       {% else %}<div class="empty"><i class="fas fa-calendar-times"></i><p>No bookings yet.</p></div>{% endif %}
     </div>
   </div>
-
+  <!-- PAYMENTS SECTION -->
+  <div id="sec-payments" class="section">
+    <div class="card">
+      <div class="card-hdr">
+        <h2><i class="fas fa-credit-card"></i> Payment History</h2>
+      </div>
+      {% if paid_bookings %}
+      <div style="overflow-x:auto">
+      <table><thead><tr><th>Transaction ID</th><th>Booking ID</th><th>Vendor</th><th>Amount</th><th>Payment Method</th><th>Date</th><th>Status</th><th>Receipt</th></tr></thead><tbody>
+      {% for b in paid_bookings %}
+      <tr>
+        <td>{{ b.transaction_id or '—' }}</td>
+        <td>{{ b.id }}</td>
+        <td>{{ b.business_name or '—' }}</td>
+        <td>₹{{ "%.0f"|format(b.total_amount or 0) }}</td>
+        <td>Mock Gateway</td>
+        <td>{{ b.created_at[:10] }}</td>
+        <td><span class="badge badge-paid">PAID</span></td>
+        <td>
+            <a href="{{ url_for('view_receipt', booking_id=b.id) }}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i> View</a>
+            <a href="{{ url_for('download_receipt', booking_id=b.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Download</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody></table></div>
+      {% else %}<div class="empty"><i class="fas fa-receipt"></i><p>No successful payments found.</p></div>{% endif %}
+    </div>
+  </div>
   <!-- COMPLAINTS SECTION -->
   <div id="sec-complaints" class="section">
     <div class="card">
@@ -415,6 +453,5 @@ document.addEventListener('DOMContentLoaded', () => {
   }), 4000);
 });
 </script>
-{% include 'chatbot_widget.html' %}
 </body>
 </html>
