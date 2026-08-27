@@ -1,6 +1,16 @@
+# Environment secrets — never commit real keys/passwords
+.env
+
+# Python
 venv/
 __pycache__/
 *.pyc
 
-# Local uploaded files
-uploads/*
+# Uploaded user files
+uploads/
+
+# OS/editor junk
+.DS_Store
+.vscode/
+database.db
+*.zip
