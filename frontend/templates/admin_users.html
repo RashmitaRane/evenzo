@@ -97,9 +97,11 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
       </td>
       <td>{{ u.created_at[:10] if u.created_at else '—' }}</td>
       <td>
-        <button class="btn btn-view" onclick="openDetails({{ u.full_name|tojson }},{{ u.email|tojson }},{{ u.role|tojson }},{{ (u.business_name or '')|tojson }},{{ (u.phone or '')|tojson }},{{ (u.license_path or '')|tojson }})">
-          <i class="fas fa-eye"></i> View
-        </button>
+        {% if u.role == 'eventmanager' %}
+        <a href="{{ url_for('admin_view_vendor', vendor_id=u.id) }}" class="btn btn-view"><i class="fas fa-eye"></i> View</a>
+        {% else %}
+        <a href="{{ url_for('admin_view_user', user_id=u.id) }}" class="btn btn-view"><i class="fas fa-eye"></i> View</a>
+        {% endif %}
         <form method="POST" action="{{ url_for('toggle_user_status', user_id=u.id) }}" style="display:inline">
           <button class="btn btn-toggle" title="Toggle Active/Inactive"><i class="fas fa-power-off"></i></button>
         </form>

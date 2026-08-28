@@ -3,6 +3,8 @@ import sqlite3
 import os
 import random
 import requests
+import re
+from io import BytesIO
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta, datetime
@@ -14,6 +16,9 @@ import io
 import base64
 from urllib.parse import quote
 import qrcode
+import uuid
+import string
+from flask import make_response
 
 load_dotenv()  # reads variables from a local .env file (this file is NOT pushed to GitHub)
 
@@ -47,7 +52,7 @@ def get_db_connection():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# ─── ONE-TIME DB MIGRATION: add cf_order_id column to store Cashfree order refs ─
+# ─── ONE-TIME DB MIGRATIONS ───────────────────────────────────────────────────
 def migrate_add_cf_order_id():
     conn = get_db_connection()
     try:
@@ -58,7 +63,18 @@ def migrate_add_cf_order_id():
     finally:
         conn.close()
 
+def migrate_add_receipt_columns():
+    conn = get_db_connection()
+    for col_def in ("transaction_id TEXT", "receipt_number TEXT"):
+        try:
+            conn.execute(f"ALTER TABLE bookings ADD COLUMN {col_def}")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # column already exists, nothing to do
+    conn.close()
+
 migrate_add_cf_order_id()
+migrate_add_receipt_columns()
 
 # ─── CASHFREE PAYMENT HELPERS ───────────────────────────────────────────────────
 def cashfree_headers():
@@ -114,6 +130,14 @@ def generate_qr_data_uri(data_text):
     img.save(buf, format="PNG")
     encoded = base64.b64encode(buf.getvalue()).decode("ascii")
     return f"data:image/png;base64,{encoded}"
+
+# ─── PRICING HELPER ───────────────────────────────────────────────────────────
+def parse_pricing_amount(value):
+    """Return the numeric amount from a vendor pricing display value."""
+    if value is None:
+        return 0.0
+    match = re.search(r'\d+(?:,\d{3})*(?:\.\d+)?', str(value))
+    return float(match.group(0).replace(',', '')) if match else 0.0
 
 # ─── CHATBOT DB INITIALIZER ───────────────────────────────────────────────────
 def init_chatbot_db():
@@ -490,7 +514,320 @@ def reset_password():
 # ═══════════════════════════════════════════════════════════════════════════════
 # USER MODULE
 # ═══════════════════════════════════════════════════════════════════════════════
+@app.route('/budget_prediction', methods=['GET', 'POST'])
+def budget_prediction():
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+    
+    prediction = None
+    if request.method == 'POST':
+        event_type = request.form.get('event_type')
+        guests = int(request.form.get('guests', 100))
+        services = request.form.getlist('services')
+        
+        # Base logical costs for estimation
+        service_costs = {
+            'Venue': 1000 * guests,
+            'Catering': 800 * guests,
+            'Photography': 25000,
+            'Decoration': 30000,
+            'Music/DJ': 15000,
+            'Makeup': 10000,
+            'Invitation': 150 * guests,
+            'Transportation': 20000
+        }
+        
+        breakdown = {}
+        total = 0
+        for svc in services:
+            cost = service_costs.get(svc, 10000) # default 10000 if unknown
+            breakdown[svc] = cost
+            total += cost
+            
+        if not services:
+            breakdown['Base Event Setup'] = 500 * guests
+            total += 500 * guests
+            
+        prediction = {
+            'breakdown': breakdown,
+            'estimated_total': total,
+            'min_total': total * 0.8,
+            'max_total': total * 1.3
+        }
 
+    return render_template('budget_prediction.html', prediction=prediction)
+
+
+@app.route('/ai_recommendations', methods=['GET', 'POST'])
+def ai_recommendations():
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+    
+    recommendations = None
+    if request.method == 'POST':
+        event_type = request.form.get('event_type', '').lower()
+        location = request.form.get('location', '').lower()
+        budget = float(request.form.get('budget', 0))
+        required_services = request.form.getlist('services')
+        
+        conn = get_db_connection()
+        # Fetch all approved vendors and their services
+        vendors = conn.execute('''
+            SELECT s.id as service_id, s.service_name, s.category, s.service_location, s.pricing,
+                   m.business_name, m.rating, m.user_id as manager_id
+            FROM services s
+            JOIN manager_profiles m ON s.manager_id = m.user_id
+            JOIN users u ON m.user_id = u.id
+            WHERE u.is_approved = 1
+        ''').fetchall()
+        conn.close()
+
+        recommendations_list = []
+        
+        for v in vendors:
+            score = 0
+            reasons = []
+            
+            # Event category match (+3)
+            v_cat = (v['category'] or '').lower()
+            if event_type and (event_type in v_cat or v_cat in event_type):
+                score += 3
+                reasons.append("Matches your event type perfectly.")
+                
+            # Location match (+2)
+            v_loc = (v['service_location'] or '').lower()
+            if location and (location in v_loc or v_loc in location):
+                score += 2
+                reasons.append("Located in your preferred area.")
+                
+            # Budget compatibility (+2)
+            v_price = parse_pricing_amount(v['pricing'])
+            if v_price <= budget:
+                score += 2
+                reasons.append(f"Fits within your budget (₹{v_price}).")
+            elif v_price <= budget * 1.2:
+                score += 1
+                reasons.append(f"Slightly above budget, but highly rated.")
+                
+            # Service match (+1 per match)
+            matched_services = 0
+            v_name = (v['service_name'] or '').lower()
+            for req_srv in required_services:
+                if req_srv.lower() in v_cat or req_srv.lower() in v_name:
+                    matched_services += 1
+            if matched_services > 0:
+                score += matched_services
+                reasons.append(f"Provides {matched_services} of your required services.")
+                
+            # Rating (+rating/2)
+            v_rating = float(v['rating'] or 0)
+            score += v_rating / 2.0
+            if v_rating >= 4.0:
+                reasons.append("Highly rated by other customers.")
+                
+            if score > 2: # Only recommend if there's some actual matching
+                recommendations_list.append({
+                    'service_id': v['service_id'],
+                    'business_name': v['business_name'],
+                    'category': v['category'],
+                    'location': v['service_location'],
+                    'pricing': v['pricing'],
+                    'rating': v['rating'],
+                    'score': score,
+                    'reasons': reasons
+                })
+        
+        # Sort by score descending
+        recommendations = sorted(recommendations_list, key=lambda x: x['score'], reverse=True)[:5]
+        
+    return render_template('ai_recommendations.html', recommendations=recommendations)
+
+
+# ─── RECEIPTS ─────────────────────────────────────────────────────────────────
+@app.route('/receipt/<int:booking_id>')
+def view_receipt(booking_id):
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+    
+    conn = get_db_connection()
+    booking = conn.execute('''
+        SELECT b.*, u.full_name as client_name, u.email as client_email,
+               m.business_name, m.phone as vendor_phone, v.email as vendor_email,
+               s.service_name
+        FROM bookings b
+        JOIN users u ON b.client_id = u.id
+        JOIN manager_profiles m ON b.manager_id = m.user_id
+        JOIN users v ON m.user_id = v.id
+        LEFT JOIN services s ON b.service_id = s.id
+        WHERE b.id = ? AND b.client_id = ? AND b.payment_status = 'paid'
+    ''', (booking_id, session['user_id'])).fetchone()
+    conn.close()
+
+    if not booking:
+        flash("Receipt not found or you don't have access.")
+        return redirect(url_for('user_dashboard'))
+
+    return render_template('receipt.html', booking=booking)
+
+@app.route('/download_receipt/<int:booking_id>')
+def download_receipt(booking_id):
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+    
+    conn = get_db_connection()
+    booking = conn.execute('''
+        SELECT b.*, u.full_name as client_name, u.email as client_email,
+               m.business_name, m.phone as vendor_phone, v.email as vendor_email,
+               s.service_name
+        FROM bookings b
+        JOIN users u ON b.client_id = u.id
+        JOIN manager_profiles m ON b.manager_id = m.user_id
+        JOIN users v ON m.user_id = v.id
+        LEFT JOIN services s ON b.service_id = s.id
+        WHERE b.id = ? AND b.client_id = ? AND b.payment_status = 'paid'
+    ''', (booking_id, session['user_id'])).fetchone()
+    conn.close()
+
+    if not booking:
+        flash("Receipt not found or you don't have access.")
+        return redirect(url_for('user_dashboard'))
+
+    try:
+        from weasyprint import HTML
+        html_content = render_template('receipt.html', booking=booking)
+        pdf_bytes = HTML(string=html_content).write_pdf()
+    except Exception:
+        # WeasyPrint needs GTK DLLs on Windows; ReportLab keeps downloads working
+        # when that optional native runtime is not installed.
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.pdfgen import canvas
+
+            pdf_buffer = BytesIO()
+            pdf = canvas.Canvas(pdf_buffer, pagesize=A4)
+            width, height = A4
+            pdf.setTitle(f"Evenzo Receipt {booking['receipt_number']}")
+            pdf.setFillColorRGB(0.58, 0.21, 0.33)
+            pdf.setFont('Helvetica-Bold', 24)
+            pdf.drawString(50, height - 60, 'Evenzo')
+            pdf.setFont('Helvetica-Bold', 14)
+            pdf.drawRightString(width - 50, height - 55, 'PAYMENT RECEIPT')
+            pdf.setFillColorRGB(0.18, 0.49, 0.20)
+            pdf.drawRightString(width - 50, height - 75, 'PAID')
+
+            pdf.setFillColorRGB(0, 0, 0)
+            pdf.setFont('Helvetica', 11)
+            receipt_lines = [
+                f"Receipt Number: {booking['receipt_number']}",
+                f"Transaction ID: {booking['transaction_id']}",
+                f"Booking ID: #{booking['id']}",
+                f"Client: {booking['client_name']} ({booking['client_email']})",
+                f"Vendor: {booking['business_name']}",
+                f"Service: {booking['service_name'] or 'Custom Request'}",
+                f"Event Date: {booking['event_date']}",
+                f"Event Location: {booking['event_location'] or 'Not specified'}",
+                f"Total Paid: Rs. {booking['total_amount'] or 0:.2f}",
+            ]
+            y_position = height - 130
+            for line in receipt_lines:
+                pdf.drawString(50, y_position, line)
+                y_position -= 26
+            pdf.setFillColorRGB(0.45, 0.45, 0.45)
+            pdf.drawCentredString(width / 2, 70, 'Thank you for choosing Evenzo.')
+            pdf.save()
+            pdf_bytes = pdf_buffer.getvalue()
+        except Exception as fallback_error:
+            flash(f"Error generating PDF: {fallback_error}")
+            return redirect(url_for('user_dashboard'))
+
+    response = make_response(pdf_bytes)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=EVENZO_Receipt_{booking["receipt_number"]}.pdf'
+    return response
+
+@app.route('/admin/view_booking/<int:booking_id>')
+def admin_view_booking(booking_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    booking = conn.execute('''
+        SELECT b.*, u.full_name as client_name, u.email as client_email,
+               m.business_name, m.phone as vendor_phone, s.service_name, s.pricing
+        FROM bookings b
+        JOIN users u ON b.client_id=u.id
+        JOIN manager_profiles m ON b.manager_id=m.user_id
+        LEFT JOIN services s ON b.service_id=s.id
+        WHERE b.id=?
+    ''', (booking_id,)).fetchone()
+    conn.close()
+    if not booking:
+        flash("Booking not found.")
+        return redirect(url_for('admin_bookings'))
+    return render_template('admin_view_booking.html', booking=booking)
+
+@app.route('/admin/view_user/<int:user_id>')
+def admin_view_user(user_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    user = conn.execute("SELECT * FROM users WHERE id=? AND role='user'", (user_id,)).fetchone()
+    if not user:
+        conn.close()
+        flash("User not found.")
+        return redirect(url_for('admin_users'))
+    bookings = conn.execute('''
+        SELECT b.*, m.business_name, s.service_name 
+        FROM bookings b 
+        JOIN manager_profiles m ON b.manager_id=m.user_id 
+        LEFT JOIN services s ON b.service_id=s.id 
+        WHERE b.client_id=? ORDER BY b.created_at DESC
+    ''', (user_id,)).fetchall()
+    conn.close()
+    return render_template('admin_view_user.html', user=user, bookings=bookings)
+
+@app.route('/admin/view_vendor/<int:vendor_id>')
+def admin_view_vendor(vendor_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    vendor = conn.execute('''
+        SELECT u.*, m.business_name, m.phone, m.license_path, m.rating 
+        FROM users u 
+        JOIN manager_profiles m ON u.id=m.user_id 
+        WHERE u.id=? AND u.role='eventmanager'
+    ''', (vendor_id,)).fetchone()
+    if not vendor:
+        conn.close()
+        flash("Vendor not found.")
+        return redirect(url_for('admin_users'))
+    services = conn.execute("SELECT * FROM services WHERE manager_id=?", (vendor_id,)).fetchall()
+    bookings = conn.execute('''
+        SELECT b.*, u.full_name as client_name, s.service_name 
+        FROM bookings b 
+        JOIN users u ON b.client_id=u.id 
+        LEFT JOIN services s ON b.service_id=s.id 
+        WHERE b.manager_id=? ORDER BY b.created_at DESC
+    ''', (vendor_id,)).fetchall()
+    conn.close()
+    return render_template('admin_view_vendor.html', vendor=vendor, services=services, bookings=bookings)
+
+@app.route('/admin/view_complaint/<int:complaint_id>')
+def admin_view_complaint(complaint_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    complaint = conn.execute('''
+        SELECT c.*, u.full_name as client_name, m.business_name
+        FROM complaints c
+        JOIN users u ON c.client_id=u.id
+        LEFT JOIN manager_profiles m ON c.manager_id=m.user_id
+        WHERE c.id=?
+    ''', (complaint_id,)).fetchone()
+    conn.close()
+    if not complaint:
+        flash("Complaint not found.")
+        return redirect(url_for('admin_complaints'))
+    return render_template('admin_view_complaint.html', complaint=complaint)
 @app.route('/user_dashboard')
 def user_dashboard():
     if 'user_id' not in session or session['role'] != 'user':
@@ -541,13 +878,16 @@ def user_dashboard():
         ORDER BY m.rating DESC
     ''').fetchall()
 
+    paid_bookings = [b for b in my_bookings if b['payment_status'] == 'paid']
+
     conn.close()
     return render_template('user_dashboard.html',
         user=user_info, bookings=my_bookings, services=all_services,
         total=total, pending=pending, confirmed=confirmed,
         completed=completed, cancelled=cancelled,
         complaints=complaints, reviews=reviews,
-        notifications=notifs, unread_count=unread_count)
+        notifications=notifs, unread_count=unread_count,
+        paid_bookings=paid_bookings)
 
 @app.route('/user/edit_profile', methods=['GET', 'POST'])
 def user_edit_profile():
@@ -808,6 +1148,7 @@ def payment_callback(booking_id):
         return redirect(url_for('index'))
 
     conn = get_db_connection()
+
     booking = conn.execute(
         "SELECT * FROM bookings WHERE id=? AND client_id=?",
         (booking_id, session['user_id'])
@@ -826,9 +1167,14 @@ def payment_callback(booking_id):
         return redirect(url_for('user_dashboard'))
 
     if status == 'PAID':
-        conn.execute("UPDATE bookings SET payment_status='paid' WHERE id=?", (booking_id,))
+        transaction_id = str(uuid.uuid4().hex)[:12].upper()
+        receipt_number = f"EVZ-{transaction_id[:8]}"
+        conn.execute(
+            "UPDATE bookings SET payment_status='paid', transaction_id=?, receipt_number=? WHERE id=?",
+            (transaction_id, receipt_number, booking_id)
+        )
         conn.commit()
-        flash("Payment successful! You can now leave a review.")
+        flash("Payment successful! Receipt generated — you can now leave a review.")
     elif status in ('ACTIVE', 'PENDING'):
         flash("Payment is still processing. Please check back shortly.")
     else:
@@ -873,8 +1219,6 @@ def view_invitation(booking_id):
 
     return render_template('invitation.html', booking=booking,
                             qr_data_uri=qr_data_uri, maps_url=maps_url, venue=venue)
-
-
 # ─── REVIEWS ──────────────────────────────────────────────────────────────────
 @app.route('/submit_review', methods=['POST'])
 def submit_review():

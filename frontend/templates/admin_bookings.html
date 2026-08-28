@@ -72,7 +72,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
   <div class="card">
     {% if bookings %}
     <div style="overflow-x:auto">
-    <table><thead><tr><th>#</th><th>Client</th><th>Vendor</th><th>Service</th><th>Date</th><th>Amount</th><th>Status</th><th>Payment</th></tr></thead><tbody>
+    <table><thead><tr><th>#</th><th>Client</th><th>Vendor</th><th>Service</th><th>Date</th><th>Amount</th><th>Status</th><th>Payment</th><th>Action</th></tr></thead><tbody>
     {% for b in bookings %}
     <tr>
       <td>{{ loop.index }}</td>
@@ -83,6 +83,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
       <td>₹{{ "%.0f"|format(b.total_amount or 0) }}</td>
       <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
       <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
+      <td><a href="{{ url_for('admin_view_booking', booking_id=b.id) }}" class="btn btn-view btn-sm"><i class="fas fa-eye"></i> View</a></td>
     </tr>
     {% endfor %}
     </tbody></table></div>
