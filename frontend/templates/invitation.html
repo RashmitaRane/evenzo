@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invitation | Evenzo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Parisienne&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --maroon-1: #6e1338;
+    --maroon-2: #4a0e26;
+    --maroon-deep: #2c0715;
+    --gold: #c9a227;
+    --gold-light: #e8c766;
+    --gold-soft: rgba(201,162,39,0.4);
+    --cream: #f7ecd9;
+    --ink-soft: #d9c9a8;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family:'EB Garamond', serif;
+    background:
+      radial-gradient(circle at 20% 15%, var(--maroon-1) 0%, transparent 55%),
+      radial-gradient(circle at 80% 85%, var(--maroon-1) 0%, transparent 55%),
+      linear-gradient(160deg, var(--maroon-2) 0%, var(--maroon-deep) 100%);
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:56px 20px;
+    color:var(--cream);
+  }
+
+  .page-actions { width:100%; max-width:560px; display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; font-family:'Jost',sans-serif; }
+  .back-btn { color:var(--ink-soft); text-decoration:none; font-size:13px; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; text-transform:uppercase; }
+  .back-btn:hover { color:var(--gold-light); }
+  .action-btns { display:flex; gap:10px; }
+  .btn { border:1px solid var(--gold); padding:10px 18px; border-radius:2px; font-family:'Jost',sans-serif; font-weight:500; letter-spacing:0.8px; text-transform:uppercase; cursor:pointer; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:7px; transition:0.25s; background:transparent; color:var(--gold-light); }
+  .btn-primary { background:var(--gold); color:var(--maroon-deep); border-color:var(--gold); }
+  .btn-primary:hover { background:var(--gold-light); }
+  .btn-outline:hover { background:rgba(201,162,39,0.12); }
+
+  .card {
+    width:100%; max-width:560px; position:relative; overflow:hidden;
+    background:
+      radial-gradient(circle at 25% 20%, var(--maroon-1) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, var(--maroon-1) 0%, transparent 55%),
+      linear-gradient(155deg, var(--maroon-2) 0%, var(--maroon-deep) 100%);
+    padding:64px 46px 60px;
+    box-shadow: 0 30px 70px -15px rgba(0,0,0,0.6);
+  }
+
+  .gold-frame { position:absolute; inset:20px; border:1.5px solid var(--gold); z-index:1; pointer-events:none; }
+
+  .dust { position:absolute; inset:0; z-index:1; pointer-events:none; }
+  .dust svg { width:100%; height:100%; }
+
+  .content { position:relative; z-index:3; }
+
+  .monogram {
+    width:54px; height:54px; margin:0 auto 18px; position:relative;
+    border:1.5px solid var(--gold);
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display', serif; font-size:21px; color:var(--gold-light); font-weight:600;
+  }
+
+  .eyebrow {
+    text-align:center; font-family:'Jost',sans-serif; font-size:10.5px; letter-spacing:4px; text-transform:uppercase;
+    color:var(--gold); font-weight:500; margin-bottom:6px;
+  }
+
+  .script-line {
+    text-align:center; font-family:'Parisienne', cursive; font-size:30px; color:var(--gold-light);
+    margin-bottom:2px; line-height:1;
+  }
+
+  .headline {
+    text-align:center; font-family:'Playfair Display', serif; font-style:italic; font-weight:600;
+    font-size:32px; color:var(--cream); line-height:1.25; margin:6px 0 16px;
+  }
+
+  .flourish { display:flex; align-items:center; justify-content:center; gap:14px; margin:0 auto 28px; width:56%; }
+  .flourish .line { flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--gold)); }
+  .flourish .line.right { background:linear-gradient(90deg, var(--gold), transparent); }
+  .flourish i { color:var(--gold); font-size:10px; }
+
+  .status-line {
+    text-align:center; font-family:'Jost',sans-serif; font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--ink-soft); margin-bottom:36px; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .status-line .dot { color:#8fbf8f; font-size:9px; }
+  .status-line.rejected .dot { color:#e08a8a; }
+
+  .details { display:grid; grid-template-columns:1fr; row-gap:18px; margin-bottom:38px; }
+  .detail-row { display:grid; grid-template-columns:112px 1fr; align-items:baseline; column-gap:18px; border-bottom:1px dotted var(--gold-soft); padding-bottom:14px; }
+  .detail-label { font-family:'Jost',sans-serif; font-size:10.5px; letter-spacing:2px; text-transform:uppercase; color:var(--gold); font-weight:500; }
+  .detail-value { font-family:'EB Garamond', serif; font-size:17px; color:var(--cream); font-weight:500; }
+  .detail-value.muted { color:var(--ink-soft); font-style:italic; font-size:15px; font-weight:400; }
+
+  .qr-block { display:flex; flex-direction:column; align-items:center; margin-bottom:6px; }
+  .qr-seal {
+    width:172px; height:172px; border-radius:50%; border:2px solid var(--gold);
+    display:flex; align-items:center; justify-content:center; position:relative;
+    background:var(--cream);
+  }
+  .qr-seal::before {
+    content:''; position:absolute; inset:10px; border:1px dashed rgba(74,14,38,0.3); border-radius:50%;
+  }
+  .qr-seal img { width:116px; height:116px; position:relative; z-index:1; }
+  .qr-caption { margin-top:16px; font-family:'EB Garamond',serif; font-size:14px; color:var(--ink-soft); text-align:center; max-width:280px; line-height:1.7; font-style:italic; }
+  .qr-caption a { color:var(--gold-light); text-decoration:none; font-weight:600; font-style:normal; }
+  .qr-caption a:hover { text-decoration:underline; }
+
+  .no-venue { display:flex; flex-direction:column; align-items:center; padding:22px 0; }
+  .no-venue i { font-size:30px; color:var(--gold-soft); margin-bottom:12px; }
+  .no-venue p { font-family:'EB Garamond',serif; font-size:14px; color:var(--ink-soft); text-align:center; max-width:270px; font-style:italic; line-height:1.7; }
+
+  .footer {
+    text-align:center; margin-top:38px; padding-top:22px; border-top:1px solid var(--gold-soft);
+    font-family:'EB Garamond',serif; font-size:13.5px; font-style:italic; color:var(--ink-soft);
+  }
+  .footer strong { color:var(--gold-light); font-family:'Playfair Display', serif; font-style:italic; font-weight:600; }
+
+  @media (max-width:560px) {
+    .card { padding:52px 26px 48px; }
+    .headline { font-size:26px; }
+    .script-line { font-size:26px; }
+    .detail-row { grid-template-columns:92px 1fr; }
+  }
+  @media print {
+    * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+    @page { size:auto; margin:8mm; }
+    html, body {
+      background:
+        radial-gradient(circle at 20% 15%, var(--maroon-1) 0%, transparent 55%),
+        radial-gradient(circle at 80% 85%, var(--maroon-1) 0%, transparent 55%),
+        linear-gradient(160deg, var(--maroon-2) 0%, var(--maroon-deep) 100%);
+      padding:0;
+      color:var(--cream);
+    }
+    .page-actions { display:none; }
+    .card {
+      box-shadow:none; max-width:100%;
+      padding:34px 30px 26px;
+      page-break-inside:avoid; break-inside:avoid;
+      min-height: 100vh;              /* ← add this: stretches the card+border to fill the whole page */
+      display: flex;                  /* ← add this */
+      flex-direction: column;         /* ← add this */
+      justify-content: center;  
+    }
+    .monogram { width:44px; height:44px; margin-bottom:12px; }
+    .script-line { font-size:24px; }
+    .headline { font-size:26px; margin:4px 0 10px; }
+    .flourish { margin-bottom:20px; }
+    .status-line { margin-bottom:24px; }
+    .details { row-gap:12px; margin-bottom:22px; }
+    .detail-row { padding-bottom:10px; }
+    .qr-seal { width:140px; height:140px; }
+    .qr-seal img { width:96px; height:96px; }
+    .qr-caption { margin-top:10px; }
+    .footer { margin-top:22px; padding-top:16px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-actions">
+    <a href="{{ url_for('user_dashboard') }}" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+    <div class="action-btns">
+      <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+      <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-download"></i> Download</button>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="gold-frame"></div>
+
+    <!-- scattered gold dust -->
+    <div class="dust">
+      <svg viewBox="0 0 400 600" preserveAspectRatio="none">
+        <g fill="#e8c766">
+          <circle cx="30" cy="40" r="1.6" opacity="0.8"/>
+          <circle cx="70" cy="90" r="1" opacity="0.5"/>
+          <circle cx="340" cy="60" r="1.8" opacity="0.7"/>
+          <circle cx="20" cy="180" r="1.2" opacity="0.6"/>
+          <circle cx="370" cy="150" r="1" opacity="0.5"/>
+          <circle cx="360" cy="260" r="1.6" opacity="0.7"/>
+          <circle cx="15" cy="300" r="1" opacity="0.5"/>
+          <circle cx="380" cy="340" r="1.3" opacity="0.6"/>
+          <circle cx="25" cy="420" r="1.5" opacity="0.7"/>
+          <circle cx="350" cy="450" r="1" opacity="0.5"/>
+          <circle cx="10" cy="500" r="1.2" opacity="0.6"/>
+          <circle cx="390" cy="520" r="1.6" opacity="0.7"/>
+          <circle cx="60" cy="560" r="1" opacity="0.5"/>
+          <circle cx="320" cy="20" r="1" opacity="0.5"/>
+          <circle cx="200" cy="15" r="1.2" opacity="0.5"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="content">
+      <div class="monogram">E</div>
+      <div class="eyebrow">Evenzo &nbsp;·&nbsp; Official Invitation</div>
+      <div class="script-line">You're Invited</div>
+      <div class="headline">{{ booking.category or booking.service_name or 'Your Event' }}</div>
+
+      <div class="flourish"><div class="line"></div><i class="fas fa-gem"></i><div class="line right"></div></div>
+
+      <div class="status-line {{ 'rejected' if booking.status not in ('confirmed','completed') else '' }}">
+        <span class="dot">●</span>&nbsp; {{ booking.status|capitalize }} &amp; Paid
+      </div>
+
+      <div class="details">
+        <div class="detail-row">
+          <div class="detail-label">Booking Ref</div>
+          <div class="detail-value">#EVZ-{{ '%04d'|format(booking.id) }}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Date</div>
+          <div class="detail-value">{{ booking.event_date }}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Venue</div>
+          <div class="detail-value {{ 'muted' if not venue }}">{{ venue or 'To be confirmed with your event manager' }}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Package</div>
+          <div class="detail-value">{{ booking.selected_package or booking.package_tier or 'Standard' }}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Hosted By</div>
+          <div class="detail-value">{{ booking.business_name }}</div>
+        </div>
+        <div class="detail-row">
+          <div class="detail-label">Contact</div>
+          <div class="detail-value" style="font-size:14px;">{{ booking.manager_phone or '—' }} &nbsp;·&nbsp; {{ booking.manager_email }}</div>
+        </div>
+      </div>
+
+      <div class="qr-block">
+        {% if qr_data_uri %}
+        <div class="qr-seal"><img src="{{ qr_data_uri }}" alt="Venue location QR code"></div>
+        <div class="qr-caption">Scan to open the venue on Google Maps, or <a href="{{ maps_url }}" target="_blank" rel="noopener">tap here to view directions</a>.</div>
+        {% else %}
+        <div class="no-venue">
+          <i class="fas fa-map-marked-alt"></i>
+          <p>The venue location wasn't provided for this booking, so a map QR code isn't available here.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="footer">
+        With gratitude for booking with <strong>Evenzo</strong> — please keep this invitation for entry and reference.
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

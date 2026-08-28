@@ -69,7 +69,7 @@
                 
                 <div class="total-amount">
                     <div class="summary-label" style="font-size: 15px;">Total Amount Due</div>
-                    ₹ {{ booking.pricing if booking.pricing else '0' }}
+                    ₹ {{ "%.0f"|format(booking.total_amount or 0) }}
                 </div>
             </div>
 
@@ -78,52 +78,31 @@
                 
                 <div class="test-warning">
                     <i class="fas fa-info-circle" style="font-size: 20px;"></i>
-                    This is a Simulated Payment Gateway. No real money will be charged. Enter any dummy card details below to test the booking flow.
+                    This is Cashfree's Sandbox (Test Mode). No real money will be charged — use Cashfree's test UPI ID or test card to complete payment.
                 </div>
 
-                <form action="{{ url_for('process_payment', booking_id=booking.id) }}" method="POST">
-                    
-                    <div class="form-group">
-                        <label>Name on Card</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" placeholder="e.g., John Doe" required>
-                        </div>
-                    </div>
+                <div id="paymentMessage" style="margin-bottom:20px; font-size:14px; color:#888;"></div>
 
-                    <div class="form-group">
-                        <label>Card Number</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-credit-card"></i>
-                            <input type="text" placeholder="4000 1234 5678 9010" maxlength="19" required>
-                        </div>
-                    </div>
+                <button id="payBtn" class="pay-btn">
+                    <i class="fas fa-lock"></i> Pay ₹{{ "%.0f"|format(booking.total_amount or 0) }} Securely
+                </button>
 
-                    <div class="grid-2">
-                        <div class="form-group">
-                            <label>Valid Thru (MM/YY)</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-calendar-alt"></i>
-                                <input type="text" placeholder="12/26" maxlength="5" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>CVV / CVC</label>
-                            <div class="input-wrapper">
-                                <i class="fas fa-lock"></i>
-                                <input type="password" placeholder="123" maxlength="3" required>
-                            </div>
-                        </div>
-                    </div>
+                <div class="secure-badge">
+                    <i class="fas fa-shield-alt"></i> Secured by Cashfree Payments
+                </div>
 
-                    <button type="submit" class="pay-btn">
-                        <i class="fas fa-lock"></i> Pay ₹{{ booking.pricing if booking.pricing else '0' }} Securely
-                    </button>
-                    
-                    <div class="secure-badge">
-                        <i class="fas fa-shield-alt"></i> 256-bit SSL Simulated Encryption
-                    </div>
-                </form>
+                <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+                <script>
+                    const cashfree = Cashfree({ mode: "sandbox" });
+                    document.getElementById('payBtn').addEventListener('click', function () {
+                        this.disabled = true;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Redirecting to Cashfree...';
+                        cashfree.checkout({
+                            paymentSessionId: "{{ payment_session_id }}",
+                            redirectTarget: "_self"
+                        });
+                    });
+                </script>
             </div>
         </div>
     </div>

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 import random
+import requests
 import re
 from io import BytesIO
 from werkzeug.utils import secure_filename
@@ -10,12 +11,25 @@ from datetime import timedelta, datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
+import io
+import base64
+from urllib.parse import quote
+import qrcode
 import uuid
 import string
 from flask import make_response
+
+load_dotenv()  # reads variables from a local .env file (this file is NOT pushed to GitHub)
+
 # ─── CONFIG ───────────────────────────────────────────────────────────────────
-EMAIL_SENDER       = "shelicoa26@gmail.com"
-EMAIL_APP_PASSWORD = "ywlg kisi dkwj rjhi"
+EMAIL_SENDER       = os.environ.get('EMAIL_SENDER', '')
+EMAIL_APP_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD', '')
+
+CASHFREE_APP_ID      = os.environ.get('CASHFREE_APP_ID', '')
+CASHFREE_SECRET_KEY  = os.environ.get('CASHFREE_SECRET_KEY', '')
+CASHFREE_BASE_URL    = "https://sandbox.cashfree.com/pg"   # sandbox/test environment only
+CASHFREE_API_VERSION = "2023-08-01"
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif'}
 MAX_UPLOAD_MB      = 10
@@ -38,6 +52,86 @@ def get_db_connection():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ─── ONE-TIME DB MIGRATIONS ───────────────────────────────────────────────────
+def migrate_add_cf_order_id():
+    conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE bookings ADD COLUMN cf_order_id TEXT")
+        conn.commit()
+    except sqlite3.OperationalError:
+        pass  # column already exists, nothing to do
+    finally:
+        conn.close()
+
+def migrate_add_receipt_columns():
+    conn = get_db_connection()
+    for col_def in ("transaction_id TEXT", "receipt_number TEXT"):
+        try:
+            conn.execute(f"ALTER TABLE bookings ADD COLUMN {col_def}")
+            conn.commit()
+        except sqlite3.OperationalError:
+            pass  # column already exists, nothing to do
+    conn.close()
+
+migrate_add_cf_order_id()
+migrate_add_receipt_columns()
+
+# ─── CASHFREE PAYMENT HELPERS ───────────────────────────────────────────────────
+def cashfree_headers():
+    return {
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "x-api-version": CASHFREE_API_VERSION,
+        "Content-Type": "application/json",
+    }
+
+def create_cashfree_order(booking, user):
+    """Creates a Cashfree sandbox order for a booking. Returns (order_id, payment_session_id)."""
+    order_id = f"evenzo{booking['id']}{int(datetime.now().timestamp())}"
+    return_url = url_for('payment_callback', booking_id=booking['id'], _external=True) + "?order_id={order_id}"
+    payload = {
+        "order_id": order_id,
+        "order_amount": float(booking['total_amount'] or 0),
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": str(user['id']),
+            "customer_name": user['full_name'],
+            "customer_email": user['email'],
+            "customer_phone": booking['client_phone'] or "9999999999",
+        },
+        "order_meta": {"return_url": return_url},
+    }
+    resp = requests.post(f"{CASHFREE_BASE_URL}/orders", headers=cashfree_headers(), json=payload, timeout=15)
+    data = resp.json()
+    if resp.status_code not in (200, 201):
+        raise RuntimeError(data.get("message", "Cashfree order creation failed"))
+    return order_id, data.get("payment_session_id")
+
+def fetch_cashfree_order_status(order_id):
+    """Fetch the current status of a Cashfree order: 'PAID', 'ACTIVE', 'EXPIRED', etc."""
+    resp = requests.get(f"{CASHFREE_BASE_URL}/orders/{order_id}", headers=cashfree_headers(), timeout=15)
+    data = resp.json()
+    return data.get("order_status"), data
+
+# ─── VENUE QR CODE HELPERS ───────────────────────────────────────────────────
+def build_maps_url(venue_text):
+    """Turn a free-text venue/location string into a Google Maps search URL."""
+    if not venue_text or not venue_text.strip():
+        return None
+    return "https://www.google.com/maps/search/?api=1&query=" + quote(venue_text.strip())
+
+def generate_qr_data_uri(data_text):
+    """Generate a QR code for the given text and return it as an inline base64 PNG data URI."""
+    qr = qrcode.QRCode(version=None, box_size=8, border=2)
+    qr.add_data(data_text)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#7a2340", back_color="white")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
+
+# ─── PRICING HELPER ───────────────────────────────────────────────────────────
 def parse_pricing_amount(value):
     """Return the numeric amount from a vendor pricing display value."""
     if value is None:
@@ -1007,18 +1101,72 @@ def cancel_booking(booking_id):
     conn.close()
     return redirect(url_for('user_dashboard'))
 
-@app.route('/pay_booking', methods=['POST'])
-def pay_booking():
+@app.route('/checkout/<int:booking_id>')
+def checkout(booking_id):
     if 'user_id' not in session or session['role'] != 'user':
         return redirect(url_for('index'))
-    booking_id = request.form.get('booking_id')
+
+    conn = get_db_connection()
+    booking = conn.execute('''
+        SELECT b.*, s.service_name, m.business_name
+        FROM bookings b
+        LEFT JOIN services s ON b.service_id = s.id
+        LEFT JOIN manager_profiles m ON b.manager_id = m.user_id
+        WHERE b.id=? AND b.client_id=? AND b.status='confirmed'
+    ''', (booking_id, session['user_id'])).fetchone()
+
+    if not booking:
+        conn.close()
+        flash("Booking not found or not ready for payment.")
+        return redirect(url_for('user_dashboard'))
+
+    if booking['payment_status'] == 'paid':
+        conn.close()
+        flash("This booking is already paid.")
+        return redirect(url_for('user_dashboard'))
+
+    user = conn.execute("SELECT * FROM users WHERE id=?", (session['user_id'],)).fetchone()
+
+    try:
+        order_id, payment_session_id = create_cashfree_order(booking, user)
+    except Exception as e:
+        conn.close()
+        flash(f"Could not start payment: {e}")
+        return redirect(url_for('user_dashboard'))
+
+    conn.execute("UPDATE bookings SET cf_order_id=? WHERE id=?", (order_id, booking_id))
+    conn.commit()
+    conn.close()
+
+    return render_template('mock_payment.html', booking=booking,
+                            payment_session_id=payment_session_id)
+
+
+@app.route('/payment/callback/<int:booking_id>')
+def payment_callback(booking_id):
+    if 'user_id' not in session or session['role'] != 'user':
+        return redirect(url_for('index'))
+
     conn = get_db_connection()
 
     booking = conn.execute(
-        "SELECT * FROM bookings WHERE id=? AND client_id=? AND status='confirmed'",
+        "SELECT * FROM bookings WHERE id=? AND client_id=?",
         (booking_id, session['user_id'])
     ).fetchone()
-    if booking:
+
+    if not booking or not booking['cf_order_id']:
+        conn.close()
+        flash("Booking not found.")
+        return redirect(url_for('user_dashboard'))
+
+    try:
+        status, _raw = fetch_cashfree_order_status(booking['cf_order_id'])
+    except Exception as e:
+        conn.close()
+        flash(f"Could not verify payment: {e}")
+        return redirect(url_for('user_dashboard'))
+
+    if status == 'PAID':
         transaction_id = str(uuid.uuid4().hex)[:12].upper()
         receipt_number = f"EVZ-{transaction_id[:8]}"
         conn.execute(
@@ -1026,11 +1174,51 @@ def pay_booking():
             (transaction_id, receipt_number, booking_id)
         )
         conn.commit()
-        flash("Mock payment successful! Receipt generated.")
+        flash("Payment successful! Receipt generated — you can now leave a review.")
+    elif status in ('ACTIVE', 'PENDING'):
+        flash("Payment is still processing. Please check back shortly.")
     else:
-        flash("Booking not found or not ready for payment.")
+        flash(f"Payment did not complete (status: {status}). Please try again.")
+
     conn.close()
     return redirect(url_for('user_dashboard'))
+
+
+# ─── DIGITAL EVENT INVITATION ───────────────────────────────────────────────
+@app.route('/invitation/<int:booking_id>')
+def view_invitation(booking_id):
+    if 'user_id' not in session or session.get('role') != 'user':
+        return redirect(url_for('index'))
+
+    conn = get_db_connection()
+    booking = conn.execute('''
+        SELECT b.*, s.service_name, s.category, s.package_tier,
+               m.business_name, m.phone AS manager_phone, m.location AS manager_location,
+               u.email AS manager_email
+        FROM bookings b
+        LEFT JOIN services s ON b.service_id = s.id
+        JOIN manager_profiles m ON b.manager_id = m.user_id
+        JOIN users u ON b.manager_id = u.id
+        WHERE b.id=? AND b.client_id=?
+    ''', (booking_id, session['user_id'])).fetchone()
+    conn.close()
+
+    if not booking:
+        flash("Booking not found.")
+        return redirect(url_for('user_dashboard'))
+
+    # Invitation is only issued once the manager has approved the booking
+    # AND payment has gone through Cashfree.
+    if booking['status'] != 'confirmed' or booking['payment_status'] != 'paid':
+        flash("Your invitation will be available once your booking is confirmed and paid.")
+        return redirect(url_for('user_dashboard'))
+
+    venue = booking['event_location'] or booking['manager_location'] or ''
+    maps_url = build_maps_url(venue)
+    qr_data_uri = generate_qr_data_uri(maps_url) if maps_url else None
+
+    return render_template('invitation.html', booking=booking,
+                            qr_data_uri=qr_data_uri, maps_url=maps_url, venue=venue)
 # ─── REVIEWS ──────────────────────────────────────────────────────────────────
 @app.route('/submit_review', methods=['POST'])
 def submit_review():

@@ -175,12 +175,11 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
         <td><span class="badge badge-{{ b.status }}">{{ b.status }}</span></td>
         <td>
           {% if b.status == 'confirmed' and b.payment_status == 'unpaid' %}
-          <form method="POST" action="{{ url_for('pay_booking') }}" style="display:inline">
-            <input type="hidden" name="booking_id" value="{{ b.id }}">
-            <button class="btn btn-primary btn-sm">Pay Now</button>
-          </form>
+          <a href="{{ url_for('checkout', booking_id=b.id) }}" class="btn btn-primary btn-sm">Pay Now</a>
           {% elif b.status == 'pending' %}
           <button class="btn btn-danger btn-sm" onclick="openCancelModal({{ b.id }})">Cancel</button>
+          {% elif b.status in ('confirmed', 'completed') and b.payment_status == 'paid' %}
+          <a href="{{ url_for('view_invitation', booking_id=b.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-ticket-alt"></i> Invitation</a>
           {% else %}
           <span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span>
           {% endif %}
@@ -259,13 +258,13 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
         <td><span class="badge badge-{{ b.payment_status }}">{{ b.payment_status }}</span></td>
         <td style="white-space:nowrap">
           {% if b.status == 'confirmed' and b.payment_status == 'unpaid' %}
-          <form method="POST" action="{{ url_for('pay_booking') }}" style="display:inline">
-            <input type="hidden" name="booking_id" value="{{ b.id }}">
-            <button class="btn btn-primary btn-sm">Pay</button>
-          </form>
+          <a href="{{ url_for('checkout', booking_id=b.id) }}" class="btn btn-primary btn-sm">Pay</a>
           {% endif %}
           {% if b.status == 'pending' %}
           <button class="btn btn-danger btn-sm" onclick="openCancelModal({{ b.id }})">Cancel</button>
+          {% endif %}
+          {% if b.status in ('confirmed', 'completed') and b.payment_status == 'paid' %}
+          <a href="{{ url_for('view_invitation', booking_id=b.id) }}" class="btn btn-primary btn-sm"><i class="fas fa-ticket-alt"></i> Invitation</a>
           {% endif %}
           {% if b.status in ('confirmed', 'completed') %}
           <button class="btn btn-outline btn-sm" onclick="openComplaintModal({{ b.id }}, {{ b.manager_id }})">Complain</button>
