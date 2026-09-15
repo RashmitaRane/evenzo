@@ -101,6 +101,7 @@ td{padding:13px;border-bottom:1px solid #eee;font-size:14px;color:#444;vertical-
   <nav>
     <a class="nav-item active" href="#" onclick="show('overview')"><i class="fas fa-home"></i> Overview</a>
     <a class="nav-item" href="#" onclick="show('vendors')"><i class="fas fa-search"></i> Find Vendors</a>
+    <a class="nav-item" href="{{ url_for('wishlist') }}"><i class="fas fa-heart"></i> My Wishlist</a>
     <a class="nav-item" href="{{ url_for('ai_recommendations') }}"><i class="fas fa-magic"></i> AI Recommendations</a>
     <a class="nav-item" href="{{ url_for('budget_prediction') }}"><i class="fas fa-calculator"></i> Smart Budget</a>
     <a class="nav-item" href="#" onclick="show('bookings')"><i class="fas fa-calendar-alt"></i> My Bookings</a>

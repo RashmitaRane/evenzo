@@ -34,7 +34,10 @@
         .slider-btn:hover { background: var(--primary); color: white; }
         
         .info-card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 30px; }
-        .info-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; }
+        .info-header { border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 20px; position: relative; }
+        .details-wishlist-btn { position: absolute; top: 0; right: 0; background: #fdf5f7; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #ccc; font-size: 19px; transition: 0.3s; }
+        .details-wishlist-btn:hover { transform: scale(1.1); }
+        .details-wishlist-btn.saved { color: var(--primary); }
         .v-category { font-size: 13px; font-weight: bold; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
         .v-title { font-size: 28px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
         
@@ -130,6 +133,7 @@
         <nav class="nav-menu">
             <a href="{{ url_for('user_dashboard') }}" class="nav-item"><i class="fas fa-home"></i> My Dashboard</a>
             <a href="{{ url_for('explore') }}" class="nav-item active"><i class="fas fa-search"></i> Find Vendors</a>
+            <a href="{{ url_for('wishlist') }}" class="nav-item"><i class="fas fa-heart"></i> My Wishlist</a>
             <a href="{{ url_for('index') }}" class="nav-item"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </nav>
         <div class="logout-container">
@@ -163,6 +167,9 @@
 
                 <div class="info-card">
                     <div class="info-header">
+                        <div class="details-wishlist-btn {{ 'saved' if is_wishlisted else '' }}" onclick="toggleSaveVendor(this)" title="Save to Wishlist" data-id="{{ service.id }}">
+                            <i class="{{ 'fas' if is_wishlisted else 'far' }} fa-heart"></i>
+                        </div>
                         <div class="v-category">{{ service.category }}</div>
                         <div class="v-title">{{ service.service_name }}</div>
                         <div class="v-business"><i class="fas fa-store" style="color: var(--primary);"></i> {{ service.business_name }}</div>
@@ -343,6 +350,34 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
+        // 🟢 WISHLIST / SAVE VENDOR LOGIC (backed by the server)
+        function toggleSaveVendor(btn) {
+            const serviceId = btn.dataset.id;
+            const icon = btn.querySelector('i');
+            btn.style.pointerEvents = 'none';
+
+            fetch(`/wishlist/toggle/${serviceId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'added') {
+                    btn.classList.add('saved');
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                } else if (data.status === 'removed') {
+                    btn.classList.remove('saved');
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                } else if (data.error === 'unauthorized') {
+                    alert('Please log in to save vendors to your wishlist.');
+                }
+            })
+            .catch(() => alert('Something went wrong updating your wishlist. Please try again.'))
+            .finally(() => { btn.style.pointerEvents = 'auto'; });
+        }
+
         // 🟢 FLASH MESSAGE AUTO-HIDE LOGIC
         document.addEventListener("DOMContentLoaded", () => {
             const alerts = document.querySelectorAll('.flash-alert');

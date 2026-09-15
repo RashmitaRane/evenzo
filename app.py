@@ -73,8 +73,27 @@ def migrate_add_receipt_columns():
             pass  # column already exists, nothing to do
     conn.close()
 
+def migrate_add_wishlist_table():
+    conn = get_db_connection()
+    try:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS wishlist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                service_id INTEGER NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, service_id),
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                FOREIGN KEY (service_id) REFERENCES services (id)
+            )
+        ''')
+        conn.commit()
+    finally:
+        conn.close()
+
 migrate_add_cf_order_id()
 migrate_add_receipt_columns()
+migrate_add_wishlist_table()
 
 # ─── CASHFREE PAYMENT HELPERS ───────────────────────────────────────────────────
 def cashfree_headers():
@@ -960,12 +979,16 @@ def explore():
         "SELECT * FROM notifications WHERE user_id=? AND is_read=0 ORDER BY created_at DESC LIMIT 10",
         (session['user_id'],)
     ).fetchall()
+    wishlist_ids = {
+        row['service_id'] for row in
+        conn.execute("SELECT service_id FROM wishlist WHERE user_id=?", (session['user_id'],)).fetchall()
+    }
     conn.close()
     return render_template('explore.html',
         services=all_services, bookings=my_bookings,
         categories=categories, notifications=notifs,
         search=search, category=category, service=service,
-        location=location, sort_by=sort_by)
+        location=location, sort_by=sort_by, wishlist_ids=wishlist_ids)
 
 @app.route('/vendor_details/<int:service_id>')
 def vendor_details(service_id):
@@ -1003,10 +1026,69 @@ def vendor_details(service_id):
         (session['user_id'], service['manager_id'])
     ).fetchone()
 
+    is_wishlisted = conn.execute(
+        "SELECT id FROM wishlist WHERE user_id=? AND service_id=?",
+        (session['user_id'], service_id)
+    ).fetchone() is not None
+
     conn.close()
     return render_template('vendors_details.html',
         service=service, reviews=reviews,
-        can_review=can_review and not already_reviewed)
+        can_review=can_review and not already_reviewed,
+        is_wishlisted=is_wishlisted)
+
+
+# ─── WISHLIST ─────────────────────────────────────────────────────────────────
+@app.route('/wishlist/toggle/<int:service_id>', methods=['POST'])
+def toggle_wishlist(service_id):
+    if 'user_id' not in session or session.get('role') != 'user':
+        return jsonify({'error': 'unauthorized'}), 401
+
+    conn = get_db_connection()
+    existing = conn.execute(
+        "SELECT id FROM wishlist WHERE user_id=? AND service_id=?",
+        (session['user_id'], service_id)
+    ).fetchone()
+
+    if existing:
+        conn.execute("DELETE FROM wishlist WHERE id=?", (existing['id'],))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'removed'})
+
+    service = conn.execute("SELECT id FROM services WHERE id=?", (service_id,)).fetchone()
+    if not service:
+        conn.close()
+        return jsonify({'error': 'not_found'}), 404
+
+    conn.execute(
+        "INSERT INTO wishlist (user_id, service_id) VALUES (?, ?)",
+        (session['user_id'], service_id)
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({'status': 'added'})
+
+
+@app.route('/wishlist')
+def wishlist():
+    if 'user_id' not in session or session.get('role') != 'user':
+        return redirect(url_for('index'))
+    conn = get_db_connection()
+    saved_services = conn.execute('''
+        SELECT s.*, m.business_name, m.profile_pic, m.rating
+        FROM wishlist w
+        JOIN services s ON w.service_id = s.id
+        JOIN manager_profiles m ON s.manager_id = m.user_id
+        WHERE w.user_id = ?
+        ORDER BY w.created_at DESC
+    ''', (session['user_id'],)).fetchall()
+    notifs = conn.execute(
+        "SELECT * FROM notifications WHERE user_id=? AND is_read=0 ORDER BY created_at DESC LIMIT 10",
+        (session['user_id'],)
+    ).fetchall()
+    conn.close()
+    return render_template('wishlist.html', services=saved_services, notifications=notifs)
 
 
 # ─── BOOKING ──────────────────────────────────────────────────────────────────
